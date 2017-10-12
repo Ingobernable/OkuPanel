@@ -1,0 +1,117 @@
+  _____  ___  ___     _
+ |_   _||  _|| __|   | \ _      _  _
+  _| |_ | |_ |__ | - |_// \ |'\|_ /_\|'\
+ |_____||___||___|   |  \_,\|   _|\_ |
+   
+------------------------------------------------------------------------
+  Project History
+------------------------------------------------------------------------
+  This project was originally created by Martin Thoma in 2011, licenced
+    under an MIT Licence, and available from
+    http://code.google.com/p/ics-parser/
+
+  On 7th of April 2013, he announced that he would not be continuing
+    development. http://stack-overflow.com/a/4767972
+
+  In March of 2014 I, s0600204, in need of a simple ics/ical parser for
+    my own purposes came across this, and decided it would be ideal.
+    However, I needed to alter the code and so, in the atmosphere of
+    open source, I make my modifications available to all.
+
+  Please also read through the original readme, available within this
+    repo as README-ORIG
+
+------------------------------------------------------------------------
+  Requirements
+------------------------------------------------------------------------
+  * PHP
+
+------------------------------------------------------------------------
+  Contents
+------------------------------------------------------------------------
+  * `class.iCalReader.php` - Takes an *.ics file and parses it into its
+                             php-array equivalent.
+                             
+  * `class.iCalParser.php` - Takes it one step further and parses the
+                             php-array, converting dates/datetimes into
+                             their unix timestamp equivalents, and
+                             unravelling the rrules, exdates and other 
+                             complexities.
+
+------------------------------------------------------------------------
+  Installation
+------------------------------------------------------------------------
+  * Using `class.iCalReader.php`:
+     - Copy `class.iCalReader.php` to a location where it can be
+       accessed from your project
+     - Include `class.iCalReader.php` to your project
+     
+  * Using `class.iCalParser.php`:
+     - Copy `class.iCalParser.php` and `class.iCalReader.php` to a
+       location where it can be accessed from your project
+     - Include `class.iCalParser.php` to your project
+
+------------------------------------------------------------------------
+  Recommendations
+------------------------------------------------------------------------
+  * It is highly recommended to set your project's local timezone, by
+    using either:
+     - the date.timezone setting in your local php.ini, or
+     - the date_default_timezone_set("...") function
+    http://uk3.php.net/manual/en/function.date-default-timezone-set.php
+
+------------------------------------------------------------------------
+  Migration
+------------------------------------------------------------------------
+  If you are migrating from Martin Thoma's original, then you will need
+    to alter your code where you access a value from either the
+    $ical->events() or $ical->todos() functions to take into account
+    changes to permit the saving of params and multiple values.
+    
+    // Before:
+    foreach ($events as $event) {
+		echo $event['DTSTART'];			  // value
+										  // params lost during parsing
+		echo $event['ATTENDEE'];		  // only the last attendee in
+										      the ics file is remembered
+		echo $event['EXDATE'];			  // all values in one line
+	}
+    
+    // After:
+    foreach ($events as $event) {
+		echo $event['DTSTART'];			  // array
+		echo $event['DTSTART']['value'];  // value
+		echo $event['DTSTART']['params']; // params in an assoc. array
+											        if params originally
+											            present in *.ics
+											            
+		echo $event['ATTENDEE'][0]['value'] // The first attendee
+		echo $event['ATTENDEE'][1]['value'] // The second attendee
+		echo $event['ATTENDEE'][n]['value'] // The (n+1)th attendee
+		
+		echo $event['EXDATE']['value'][0]  // first exdate
+		echo $event['EXDATE']['value'][1]  // second exdate
+		echo $event['EXDATE']['value'][n]  // (n+1)th exdate
+		
+		// examples
+		echo $event['DTSTART']['params']['TZID'];
+		echo $event['ATTENDEE'][0]['params']['ROLE'];
+	}
+
+------------------------------------------------------------------------
+  Basic Example
+------------------------------------------------------------------------
+    <?php
+      include 'class.iCalReader.php';
+
+      $ical = new ICal('MyCal.ics');
+      print_r($ical->events());
+    ?>
+    
+  For a more extensive example, please see example.php
+
+------------------------------------------------------------------------
+  Credits
+------------------------------------------------------------------------
+  * Martin Thoma (programming, bug-fixing, project management)
+  * Frank Gregor (programming, feedback, testing)

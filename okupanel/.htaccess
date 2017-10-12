@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+Options -Indexes
+
+RewriteEngine On
+
+# Allow pictures, txt, svg and fonts
+RewriteCond %{REQUEST_FILENAME} !\.(?:js|css|png|jpg|jpeg|gif|txt|eot|woff|ttf|svg|otf|woff2)$ [NC]
+
+# Deny to any other
+RewriteRule ^ - [L,F]
+
+# Allow serving fonts
+AddType application/vnd.ms-fontobject .eot
+AddType application/font-woff .woff
+AddType application/x-font-truetype .ttf
+AddType image/svg+xml .svg
+AddType application/x-font-opentype .otf
+
+# could use application/octet-stream for default binary file transfer
+#AddType application/octet-stream .otf .ttf
+
+</IfModule>

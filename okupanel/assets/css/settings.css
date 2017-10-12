@@ -1,0 +1,50 @@
+
+.okupanel-field {
+    clear: both;
+    display: table;
+    width: 100%;
+    padding: 0 15px 0 0;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+.okupanel-field label {
+    width: 180px;
+    display: table-cell;
+    vertical-align: top;
+    padding-top: 6px;
+    padding-right: 20px;
+}
+
+.okupanel-field-inner {
+    margin-left: 120px;
+    display: table-cell;
+}
+
+
+.okupanel-field input[type="text"],
+.okupanel-field textarea,
+.okupanel-field select {
+    width: 100%;
+    padding: 6px 8px;
+}
+
+.okupanel-field textarea {
+	height: 200px;
+}
+
+.okupanel-field-inner ul {
+	margin: 0;
+	padding: 0;
+}
+.okupanel-field-inner ul li {
+	list-style: none;
+}
+
+.okupanel-settings-field {
+    padding-left: 14px;
+}
+
+.okupanel-settings-field label {
+	font-weight: bold;
+}
