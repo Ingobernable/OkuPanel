@@ -38,7 +38,7 @@ See [our own OkuPanel](https://ingobernable.net/okupanel/) online!
 **Plugin installation:**
 
 * Copy the `okupanel` folder to your server's `wp-content/plugins` folder.
-* Enable the OkuPanel via the `Plugins` tab.
+* Enable the OkuPanel plugin via the `Plugins` tab.
 * Go to `Settings > OkuPanel` and follow the instructions.
 
 **Kiosk configuration:**
