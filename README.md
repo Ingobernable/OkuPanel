@@ -16,6 +16,11 @@ A panel that displays live events from a Google Calendar or .ics files. By Hackl
 
 See [our own OkuPanel](https://ingobernable.net/okupanel/) online!
 
+![Desktop version of our OkuPanel](/screenshots/screenshot-1.png?raw=true "Desktop version of our OkuPanel")
+![An event popup from the web version](/screenshots/screenshot-2.png?raw=true "An event popup from the web version")
+![A photo from our real OkuPanel entrance screen](/screenshots/screenshot-3.jpg?raw=true "A photo from our real OkuPanel entrance screen")
+![Mobile version of our OkuPanel](/screenshots/screenshot-4.png?raw=true "Mobile version of our OkuPanel")
+
 ## Installation 
 
 **Requirements:**
