@@ -78,6 +78,8 @@ function okupanel_settings_page(){
 		update_option('okupanel_panel_css', wp_strip_all_tags(trim(stripslashes($_POST['okupanel_panel_css']))));
 		update_option('okupanel_panel_js', wp_strip_all_tags(trim(stripslashes($_POST['okupanel_panel_js']))));
 		
+		update_option('okupanel_mods', wp_strip_all_tags(trim(stripslashes($_POST['okupanel_mods']))));
+		
 		delete_option('okupanel_events_cache');
 	}
 	
@@ -194,6 +196,14 @@ function okupanel_settings_page(){
 		</div>
 		
 		<div class="okupanel-field okupanel-settings-field">
+			<label><?= __('Enable mods', 'okupanel') ?></label>
+			<div class="okupanel-field-inner">
+				<div><input name="okupanel_mods" value="<?= esc_attr(get_option('okupanel_mods', '')) ?>" /></div>
+				<div><?= __('Comma-separated mod files to enable (without extensions). Mods are files dropped in the okupanel/mods folder, containing filters (output modifications) for specific events. See okupanel/mods/hackmeeting2017.php for an example (or enable it with "hackmeeting2017" and add an event like "[1.99] title").', 'okupanel') ?></div>
+			</div>
+		</div>
+		
+		<div class="okupanel-field okupanel-settings-field">
 			<label><?= __('Include styles in pages with ID', 'okupanel') ?>:</label>
 			<div class="okupanel-field-inner">
 				<div><input type="text" name="okupanel_page_ids" value="<?= esc_attr(get_option('okupanel_page_ids', '')) ?>" /></div>
@@ -244,20 +254,20 @@ function okupanel_print_panel(){
 			$class .= $is_first_tr ? ' okupanel-tr-first' : ' okupanel-tr-not-first';
 
 			if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d')){
-				$tr = '<span title="'.__('Today', 'okupanel').' '.date_i18n('l d/m', $e['start']).'">'.__('Today', 'okupanel');
+				$tr = '<span title="'.__('Today', 'okupanel').' '.date_i18n(__('l m/d', 'okupanel'), $e['start']).'">'.__('Today', 'okupanel');
 				if (date_i18n('H:i') < '08:00')
 					$tr .= ' ('.date_i18n('l').')';
 				$tr .= '</span>';
 				$class .= ' okupanel-today';
 			} else if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d', strtotime('+1 day')))
-				$tr = '<span title="'.__('Tomorrow', 'okupanel').' '.date_i18n('l d/m', $e['start']).'">'.__('Tomorrow', 'okupanel').'</span>';
+				$tr = '<span title="'.__('Tomorrow', 'okupanel').' '.date_i18n(__('l m/d', 'okupanel'), $e['start']).'">'.__('Tomorrow', 'okupanel').'</span>';
 			else {
 				$diff = $e['start'] - strtotime(date('Y-m-d').' 00:00:00');
 				
 				//if ($diff < 7 * DAY_IN_SECONDS)
 				//	$tr = date_i18n('l', $e['start']);
 				//else
-					$tr = date_i18n('l d/m', $e['start']);
+					$tr = date_i18n(__('l m/d', 'okupanel'), $e['start']);
 			}
 			$trs[] = array('tds' => '', 'okupanel-tr-space-'.($is_first_tr ? 'first' : 'not-first')); // space
 			$trs[] = array('tds' => $tr, 'class' => $class);
@@ -305,6 +315,17 @@ function okupanel_print_panel(){
 	
 		//$tr['icon'] = '<i class="fa fa-'.okupanel_get_icon($e['summary']).' okupanel-fixed-icon"></i>';
 		$tr['summary'] = htmlentities(!empty($e['summary']) ? $e['summary'] : $e['description']);
+
+		// allow mods
+		$vars = array(
+			'tr' => $tr,
+			'e' => $e,
+			'short_title' => $tr['summary'],
+			'hashtag' => null,
+			'hashtag_type' => null,
+		);
+		$vars = apply_filters('okupanel_detect_hashtag', $vars);
+		extract($vars);
 		
 		if ($e['status'] != 'confirmed')
 			$tr['summary'] .= ' <span class="okupanel-ind-custom-status">'.htmlentities(strtoupper($e['status'])).'</span>';
@@ -312,10 +333,13 @@ function okupanel_print_panel(){
 		if ($starting)
 			$tr['summary'] .= ' <span class="okupanel-ind-new">'.__('Starting', 'okupanel').'</span>';
 			
-		if (!empty($e['created']) && $e['created'] > strtotime('-'.OKUPANEL_CLIENT_EVENT_NEW.' days'))
-			$tr['summary'] .= ' <span class="okupanel-ind-new">'.__('New', 'okupanel').'</span>';
-		else if ($e['updated'] > strtotime(intval(date('N')) == 1 ? '-4 days' : '-2 days'))
-			$tr['summary'] .= ' <span class="okupanel-ind-mod">'.__('Modified', 'okupanel').'</span>';
+		if (!$hashtag){ // disable new and modified tags when a hashtag is present
+			
+			if (!empty($e['created']) && $e['created'] > strtotime('-'.OKUPANEL_CLIENT_EVENT_NEW.' days'))
+				$tr['summary'] .= ' <span class="okupanel-ind-new">'.__('New', 'okupanel').'</span>';
+			else if ($e['updated'] > strtotime(intval(date('N')) == 1 ? '-4 days' : '-2 days'))
+				$tr['summary'] .= ' <span class="okupanel-ind-mod">'.__('Modified', 'okupanel').'</span>';
+		}
 		
 		if ($e['recurrence']){
 			$tr['summary'] .= ' <span class="okupanel-ind-recurrence">'.okupanel_human_recurrence($e).'</span>';
@@ -330,7 +354,7 @@ function okupanel_print_panel(){
 			
 		if (preg_match('#(party|'.preg_quote(__('fiesta', 'okupanel'), '#').'|'.preg_quote(__('sound system', 'okupanel'), '#').'|'.preg_quote(__('concert', 'okupanel'), '#').')#ium', $e['summary']))
 			$tr['summary'] .= '<i class="fa fa-music"></i>';
-			
+
 		$play = $started 
 			? '<i class="fa fa-play okupanel-playing-ind"></i>'
 			: (
@@ -339,10 +363,6 @@ function okupanel_print_panel(){
 				: ''
 			);
 		
-		$summary = $play.'<';
-		
-		$summary .= 'a class="okupanel-popup-link" href="'.(!empty($e['htmlLink']) ? $e['htmlLink'] : '#').'" target="_blank"';
-	
 		$title = rtrim(preg_replace('#^https?://(?:www\.)?(.*?)$#i', '$1', $e['htmlLink']), '/');
 		
 		ob_start();
@@ -350,7 +370,7 @@ function okupanel_print_panel(){
 		<div class="okupanel-popup-content-intro">
 			<div>
 				<label><?= __('Beginning', 'okupanel') ?>:</label>
-				<span><?= ucfirst(sprintf(__('%s at %s', 'okupanel'), date_i18n('l d/m', $e['start']), date_i18n('G:i', $e['start']))) ?></span>
+				<span><?= ucfirst(sprintf(__('%s at %s', 'okupanel'), date_i18n(__('l F jS, Y', 'okupanel'), $e['start']), date_i18n('G:i', $e['start']))) ?></span>
 			</div>
 			<div>
 				<label><?= __('Duration', 'okupanel') ?>:</label>
@@ -360,7 +380,7 @@ function okupanel_print_panel(){
 					if (date_i18n('Y-m-d', $e['start']) == date_i18n('Y-m-d', $e['end']))
 						echo sprintf(__('until %s', 'okupanel'), date_i18n('G:i', $e['end']));
 					else
-						echo sprintf(__('until %s at %s', 'okupanel'), date_i18n('l d/m', $e['end']), date_i18n('G:i', $e['end']));
+						echo sprintf(__('until %s at %s', 'okupanel'), date_i18n(__('l F jS, Y', 'okupanel'), $e['end']), date_i18n('G:i', $e['end']));
 					echo ')';
 				?></span>
 			</div>
@@ -377,7 +397,7 @@ function okupanel_print_panel(){
 								else if (preg_match('#^([B0-9]+\.?)$#i', $e['location']))
 									echo __('Floor', 'okupanel').' ';
 								
-								echo $e['location'];
+								echo htmlentities(stripslashes($e['location']));
 							}
 						}
 						if ($address)
@@ -393,23 +413,29 @@ function okupanel_print_panel(){
 		</div>
 		<?php 
 		
-		$after = apply_filters('okupanel_after_popup_content', '', $e);
+		$after = apply_filters('okupanel_after_popup_content', '', $e, $hashtag, $hashtag_type);
+		
 		if ($show_desc || $after != ''){ ?>
 			<div class="okupanel-popup-content-body">
 				<?php 
 				if ($show_desc) 
-					echo nl2br(htmlentities(preg_replace('#https?://[^\s]+#ius', '<a href="$0" target="_blank">$0</a>', $e['description'])));
+					echo nl2br(htmlentities(stripslashes(preg_replace('#https?://[^\s]+#ius', '<a href="$0" target="_blank">$0</a>', $e['description']))));
 				echo $after;
 				?>
 			</div>
 			<?php
 		}
 		$content = ob_get_clean();
+
+		$linkTag = 'a class="okupanel-popup-link" href="'.(!empty($e['htmlLink']) ? $e['htmlLink'] : '#').'" target="_blank"';
+		$linkTag .= ' title="'.esc_attr(htmlentities(wp_strip_all_tags($e['description']))).'"';
 		
-		$summary .= ' data-okupanel-popup-link="'.(!empty($e['htmlLink']) ? esc_attr('(<a href="'.$e['htmlLink'].'" target="_blank">'.$title.'</a>)') : '').'"';
-		$summary .= ' data-okupanel-popup-title="'.esc_attr(htmlentities($e['summary'])).'"';
-		$summary .= ' data-okupanel-popup-content="'.esc_attr($content).'"';
-		$summary .= ' title="'.esc_attr(htmlentities(wp_strip_all_tags($e['description']))).'"';
+		$summary = $play.'<'.$linkTag;
+		
+		$tr_attr = ' data-okupanel-popup-link="'.(!empty($e['htmlLink']) ? esc_attr('(<a href="'.$e['htmlLink'].'" target="_blank">'.$title.'</a>)') : '').'"';
+		
+		$tr_attr .= ' data-okupanel-popup-title="'.esc_attr($short_title).'"';
+		$tr_attr .= ' data-okupanel-popup-content="'.esc_attr($content).'"';
 
 		$tr['summary'] = $summary.'>'.$tr['summary'].'</a>';
 
@@ -422,7 +448,7 @@ function okupanel_print_panel(){
 			else if ($diff < 7 * DAY_IN_SECONDS)
 				$until = date_i18n('D', $e['end']).'. '.date('H:i', $e['end']);
 			else
-				$until = date_i18n('D d/m', $e['end']).'. '.date('H:i', $e['end']);
+				$until = date_i18n(__('D m/d', 'okupanel'), $e['end']).'. '.date('H:i', $e['end']);
 
 			$tr['summary'] .= '<span class="okupanel-ind-until">'.$icon.$until.'</span>';
 			$tr['duration'] = okupanel_human_time_diff($e['end'] - $e['start']);
@@ -437,10 +463,7 @@ function okupanel_print_panel(){
 		if (strlen($tr['location']) > 10)
 			$tr['location'] = '...';
 			
-		if (!empty($e['htmlLink']))
-			$tr['location'] = '<a'.$title.' href="'.$e['htmlLink'].'" target="_blank">'.$tr['location'].'</a>';
-		else if ($title != '')
-			$tr['location'] = '<span'.$title.'>'.$tr['location'].'</span>';
+		$tr['location'] = '<a'.$title.' '.$linkTag.'>'.$tr['location'].'</a>';
 		
 		$tr['start'] .= '<span class="okupanel-tr-mobile-metas">'.$tr['location'].'</span>';
 		
@@ -456,7 +479,7 @@ function okupanel_print_panel(){
 		if (!isset($events[$events_i+1]) || $events[$events_i+1]['start'] != $e['start'])
 			$class .= ' okupanel-start-last';
 
-		$trs[sanitize_title($e['origin']).'-'.$e['id']] = array('tds' => $tr, 'class' => $class, 'starting' => $starting);
+		$trs[sanitize_title($e['origin']).'-'.$e['id']] = array('tds' => $tr, 'class' => $class, 'starting' => $starting, 'attr' => $tr_attr);
 		$col_span = max($col_span, count($tr));
 		
 		//if (count($trs) > 100)
@@ -474,9 +497,10 @@ function okupanel_print_panel(){
 			
 			$tr += array(
 				'class' => '',
-				'starting' => false
+				'starting' => false,
+				'attr' => '',
 			);
-			echo '<tr class="okupanel-table-tr okupanel-table-tr-id-'.$id.' '.$tr['class'].'">';
+			echo '<tr class="okupanel-table-tr okupanel-table-tr-id-'.$id.' '.$tr['class'].'" '.$tr['attr'].'>';
 			if (is_string($tr['tds'])){
 				echo '<td class="okupanel-table-td-'.($tr['tds'] == '' ? 'space' : 'center').'" colspan="'.$col_span.'">'.$tr['tds'].($tr['tds'] == '' ? '' : '<span class="okupanel-table-mobile-header">Planta.Sala</span>').'</td>';
 			} else {
@@ -630,7 +654,7 @@ function okupanel_line($atts = array(), $content = ''){
 	ob_start();
 	?>
 	<div class="okupanel-network-wrap">
-		<span class="okupanel-network"><?= $atts['label'] ?>: </span>
+		<span class="okupanel-network"><?php echo $atts['label']; if (preg_match('#.*[a-z0-9]$#iu', $atts['label'])) echo ':'; ?> </span>
 		<span class="okupanel-network-url">
 			<?php 
 				$link = '<a href="'.esc_attr($atts['url']).'" target="_blank">'.$atts['link_label'].'</a>';
@@ -884,60 +908,68 @@ function okunet_adjust_recurrence(&$e){
 
 add_shortcode('okupanel_most_important', 'okupanel_most_important');
 function okupanel_most_important($atts = array(), $content = ''){
-	if (!($events = okupanel_get_events()))
-		return '';
-		
-	$sep = '<div class="okupanel-network-sep"></div>';
 	$html = '';
-	$done = array();
-	
-	$patterns = array();
-	if ($importants = get_option('okupanel_most_important', false))
-		foreach (explode("\n", $importants) as $imp){
-			$imp = trim($imp);
-			if ($imp != '' && preg_match('@^\s*(#.*?#[a-z]*)\s*(\s.*)?$@isu', $imp, $m))
-				$patterns[$m[1]] = !empty($m[2]) ? $m[2] : null;
-		}
+	if ($events = okupanel_get_events()){
+			
+		$sep = '<div class="okupanel-network-sep"></div>';
+		$done = array();
+		
+		$patterns = array();
+		if ($importants = get_option('okupanel_most_important', false))
+			foreach (explode("\n", $importants) as $imp){
+				$imp = trim($imp);
+				if ($imp != '' && preg_match('@^\s*(#.*?#[a-z]*)\s*(\s.*)?$@isu', $imp, $m))
+					$patterns[$m[1]] = !empty($m[2]) ? $m[2] : null;
+			}
 
-	if ($patterns)
-		foreach ($events as $e){
-			if (!empty($e['recurrence']))
-				okunet_adjust_recurrence($e);
-							
-			if ($e['end_gmt'] < time())
-				continue;
+		if ($patterns)
+			foreach ($events as $e){
+				if (!empty($e['recurrence']))
+					okunet_adjust_recurrence($e);
+								
+				if ($e['end_gmt'] < time())
+					continue;
 
-			$class = '';
-			foreach ($patterns as $pat => $title){
-				
-				if (empty($done[$pat]) && preg_match($pat, $e['summary'])){ // please adapt manually to your language
-					$done[$pat] = true;
+				$class = '';
+				foreach ($patterns as $pat => $title){
 					
-					if ($e['start_gmt'] < time())
-						$date = sprintf(__('Until %s', 'okupanel'), date_i18n('G:i', $e['end']));
-					else {
-
-						if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d')){
-							$date = __('today', 'okupanel');
-						} else if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d', strtotime('+1 day')))
-							$date = __('tomorrow', 'okupanel');
+					if (empty($done[$pat]) && preg_match($pat, $e['summary'])){ // please adapt manually to your language
+						$done[$pat] = true;
+						
+						if ($e['start_gmt'] < time())
+							$date = sprintf(__('Until %s', 'okupanel'), date_i18n('G:i', $e['end']));
 						else {
-							$diff = $e['start'] - strtotime(date('Y-m-d').' 00:00:00');
-							if ($diff <= 7 * DAY_IN_SECONDS){
-								$date = date_i18n('l', $e['start']);
-								$date = (function_exists('mb_substr') ? mb_substr($date, 0, 3) : substr($date, 0, 3)).'.';
-							} else if ($diff < 10 * DAY_IN_SECONDS){
-								$date = date_i18n('l d/m', $e['start']);
-								$date = (function_exists('mb_substr') ? mb_substr($date, 0, 3) : substr($date, 0, 3)).'.';
-							} else
-								continue;
+
+							if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d')){
+								$date = __('today', 'okupanel');
+							} else if (date_i18n('Y-m-d', $e['start_gmt']) == date_i18n('Y-m-d', strtotime('+1 day')))
+								$date = __('tomorrow', 'okupanel');
+							else {
+								$diff = $e['start'] - strtotime(date('Y-m-d').' 00:00:00');
+								if ($diff <= 7 * DAY_IN_SECONDS){
+									$date = date_i18n('l', $e['start']);
+									$date = (function_exists('mb_substr') ? mb_substr($date, 0, 3) : substr($date, 0, 3)).'.';
+								} else if ($diff < 10 * DAY_IN_SECONDS){
+									$date = date_i18n(__('l m/d', 'okupanel'), $e['start']);
+									$date = (function_exists('mb_substr') ? mb_substr($date, 0, 3) : substr($date, 0, 3)).'.';
+								} else
+									continue;
+							}
+							$date .= ' '.sprintf(__('at %s', 'okupanel'), date_i18n('G:i', $e['start']));
 						}
-						$date .= ' '.sprintf(__('at %s', 'okupanel'), date_i18n('G:i', $e['start']));
+						$html .= '<div class="okupanel-most-important"><i class="fa fa-'.($e['start_gmt'] < time() ? 'play' : 'bullhorn').'"></i><div class="okupanel-most-important-right"><strong>'.($title ? trim($title) : $e['summary']).'</strong> <br/>'.$date.(!empty($e['location']) ? ' <span class="okupanel-most-important-location">('.sprintf(__('room %s', 'okupanel'), $e['location']).')</span>' : '').'</div></div>';
 					}
-					$html .= '<div class="okupanel-most-important"><i class="fa fa-'.($e['start_gmt'] < time() ? 'play' : 'bullhorn').'"></i><div class="okupanel-most-important-right"><strong>'.($title ? trim($title) : $e['summary']).'</strong> <br/>'.$date.(!empty($e['location']) ? ' <span class="okupanel-most-important-location">('.sprintf(__('room %s', 'okupanel'), $e['location']).')</span>' : '').'</div></div>';
 				}
 			}
-		}
-	return '<div class="okupanel-most-importants">'.apply_filters('okupanel_shortcode_most_important', $html.(!empty($content) ? trim($content) : '')).'</div>';
+		if (!empty($content))
+			$html .= trim($content);
+	}
+	
+	return '<div class="okupanel-most-importants">'.apply_filters('okupanel_shortcode_most_important', $html).'</div>';
 }
 
+// load mods
+$mods = explode(',', str_replace(' ', '', get_option('okupanel_mods', '')));
+foreach (okupanel_lsdir(OKUPANEL_PATH.'/mods') as $file)
+	if (preg_match('#^(.*)\.php$#i', $file, $m) && in_array($m[1], $mods))
+		require(OKUPANEL_PATH.'/mods/'.$file);

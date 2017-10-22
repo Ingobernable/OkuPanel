@@ -4,12 +4,16 @@ jQuery(document).ready(function(){
 	
 	var clock = jQuery('.okupanel-clock');
 	var last_update = new Date();
+	var date_diff = ((new Date()).getTime() / 1000) - OKUPANEL.now;
 	
 	if (clock.length){
 		function clock_update(){
 			var d = new Date();
-			clock.html(d.getHours()+':'+(d.getMinutes() > 9 ? d.getMinutes() : '0'+d.getMinutes()));
+
 			jQuery('body')[last_update.getTime() < d.getTime() - OKUPANEL.desynced_error_delay || OKUPANEL.simulate_desynced ? 'addClass' : 'removeClass']('okupanel-desynced'); // show as desynced after 2 times the client refresh frequency, +10s
+
+			d.setTime((d.getTime() / 1000 - date_diff) * 1000);
+			clock.html(d.getHours()+':'+(d.getMinutes() > 9 ? d.getMinutes() : '0'+d.getMinutes()));
 		}
 		clock_update();
 		setInterval(function(){
@@ -95,15 +99,19 @@ jQuery(document).ready(function(){
 			},
 			success: function(data){
 				if (data && data.success){
-					last_update = new Date();
-					jQuery('body').removeClass('okupanel-desynced');
-					jQuery('.okupanel-table').replaceWith(jQuery(data.html));
-					jQuery('.okupanel-panel-right-inner').replaceWith(jQuery(data.right));
-					
-					if (now_bottombar != data.bottombar){
-						now_bottombar = new_bottombar = data.bottombar;
+					if (data.reload)
+						location.reload();
+					else {
+						last_update = new Date();
+						jQuery('body').removeClass('okupanel-desynced');
+						jQuery('.okupanel-table').replaceWith(jQuery(data.html));
+						jQuery('.okupanel-panel-right-inner').replaceWith(jQuery(data.right));
+						
+						if (now_bottombar != data.bottombar){
+							now_bottombar = new_bottombar = data.bottombar;
+						}
+						update_positions(true);
 					}
-					update_positions(true);
 				}
 			},
 			complete: function(){
@@ -191,21 +199,21 @@ jQuery(document).ready(function(){
 	}
 	
 	jQuery('body.okupanel-fullscreen').closest('html').css({overflow: 'hidden'});
-	
 	jQuery('body:not(.okupanel-fullscreen)').on('click', 'a.okupanel-popup-link', function(e){
 		if (jQuery(e.target).attr('href') == '#' || (!e.shiftKey && !e.ctrlKey)){
 			var p = jQuery('#okupanel-popup');
 			if (p.hasClass('okupanel-popup-open'))
 				return false;
+			var dataholder = jQuery(this).closest('tr');
 			
 			p.addClass('okupanel-popup-open');
 			p.prependTo(jQuery('body'));
-			p.find('.okupanel-popup-title-label').html(jQuery(this).data('okupanel-popup-title'));
+			p.find('.okupanel-popup-title-label').html(dataholder.data('okupanel-popup-title'));
 			
-			var c = jQuery(this).data('okupanel-popup-link');
+			var c = dataholder.data('okupanel-popup-link');
 			p.find('.okupanel-popup-link')[c == '' ? 'hide' : 'show']().html(c);
 			
-			c = jQuery(this).data('okupanel-popup-content');
+			c = dataholder.data('okupanel-popup-content');
 			p.find('.okupanel-popup-content')[c == '' ? 'hide' : 'show']().html(c);
 
 			// calculate popup's top offset

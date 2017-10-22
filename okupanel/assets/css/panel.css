@@ -929,3 +929,48 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 .okupanel-header-wrap {
     background: url("../img/banner-hq.jpg");
 }
+
+.okupanel-summary-hashtag {
+    position: relative;
+    top: -1px;
+    min-width: 78px;
+    vertical-align: top;
+    display: inline-block;
+    padding-right: 2px;
+}
+
+.okupanel-popup-title-label .okupanel-ind-new,
+.okupanel-popup-title-label .okupanel-ind-custom-status,
+.okupanel-popup-title-label .okupanel-ind-mod { 
+	margin-left: 10px;
+	top: -2px;
+}
+
+.okupanel-popup-title-label .okupanel-summary-hashtag {
+	top: 2px;
+	margin-right: 10px;
+}
+
+.okupanel-summary-hashtag span {
+    background: #FFFF00;
+    color: black;
+    font-size: 14px;
+    padding: 2px 3px;
+    position: relative;
+    font-weight: bold !important;
+    display: inline-block;
+    vertical-align: top;
+    font-family: roboto;
+    border-radius: 2px;
+}
+
+.okupanel-hashtag-link {
+	margin-top: 20px;
+	font-style: italic;
+	color: #777;
+}
+
+.okupanel-hashtag-link i {
+	margin-right: 6px;
+}
+

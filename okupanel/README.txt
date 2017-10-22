@@ -10,6 +10,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 A panel that displays live events from a Google Calendar or .ics files. By Hacklab155.
 
+
 == Features ==
 
 - Display events from one Google Calendar or from one or several .ics
@@ -43,8 +44,8 @@ Calle Gobernador 39, Madrid, Spain
 
 **Plugin installation:**
 
-- Copy the plugin files to your `plugins` folder.
-- Enable the plugin via the `Plugins` tab.
+- Copy the `okupanel` folder to your server's `wp-content/plugins` folder.
+- Enable the OkuPanel plugin via the `Plugins` tab.
 - Go to `Settings > OkuPanel` and follow the instructions.
 
 **Kiosk configuration:**
@@ -83,6 +84,9 @@ Calle Gobernador 39, Madrid, Spain
 
 **Do you offer installation support?**
 - Not really.. but you're very welcome to visit us with your Pi and MicroSD card at [La Ingobernable](https://ingobernable.net/) (address below), we'll do our best to solve your troubles in the moment ;)
+
+**Do you offer software support?**
+- Not really either.. but if you found a nice bug, we'll be pleased to fix it! Please use [our Github repository](https://github.com/Ingobernable/OkuPanel/issues) for all support tickets and suggestions.
 
 **Do you have a donate link?**
 - No, but if you really think we deserve your donation, you can always visit us (see address below) or contact us at luna155 at riseup dot net.
@@ -261,11 +265,18 @@ jQuery(document).ready(function(){
 
 Autodetected events:
 ~~~~
-#as[ea]mblea\s*general#ius Asamblea General
-#s[áa]bado\s*rojo#ius Sábado Rojo
+'#as[ea]mblea\s*general#ius Asamblea General
+'#s[áa]bado\s*rojo#ius Sábado Rojo
 ~~~~
 
 See [our own OkuPanel](https://ingobernable.net/okupanel/) online!
 
 OkuPanel, by [Hacklab155](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
 Calle Gobernador 39, Madrid, Spain
+
+
+== Screenshots ==
+Desktop version of our OkuPanel
+An event popup from the web version
+A photo from our real OkuPanel entrance screen
+Mobile version of our OkuPanel
