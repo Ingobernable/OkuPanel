@@ -3,7 +3,7 @@
 Plugin Name: OkuPanel
 Plugin URI: https://ingobernable.net
 Description: A panel that displays live events from a Google Calendar or .ics files. By Hacklab155.
-Version: 4.1
+Version: 4.2
 Author: Hacklab155@Ingobernable
 Author URI: https://hacklab.ingobernable.net
 License: GPLv2 or later
@@ -24,7 +24,7 @@ define('OKUPANEL_CLIENT_EVENT_NEW', 2); // DAYS TO SHOW THE "NEW" EVENT LABEL
 
 // stop editing from now
 	
-define('OKUPANEL_VERSION', '4.1.7'); // increment to force assets recaching
+define('OKUPANEL_VERSION', '4.2.2'); // increment to force assets recaching
 define('OKUPANEL_PATH', __DIR__);
 define('OKUPANEL_URL', plugins_url('', __FILE__));
 define('OKUPANEL_CALENDAR_CHECK_SSL', false); // DO NOT CHECK SSL CERTIFICATES
@@ -54,11 +54,12 @@ function okupanel_page_template($template){
 	global $wp_query, $wpdb;
 	if ($wp_query->is_main_query() && !empty($wp_query->query_vars['okupanel_action'])){
 		switch ($wp_query->query_vars['okupanel_action']){
-			
 			case 'panel':
 				return OKUPANEL_PATH.'/templates/panel.php';
 			
+
 		}
+		do_action('okupanel_action_'.$wp_query->query_vars['okupanel_action']);
 	}
 	return $template;
 }

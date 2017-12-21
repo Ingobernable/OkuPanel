@@ -68,6 +68,9 @@ class Okupanel_interface_ics extends Okupanel_interface {
 					if (!empty($e['CLASS']['value']) && @$e['CLASS']['value'] !== 'PUBLIC')
 						continue;
 						
+					if (!empty($e['STATUS']['value']) && @$e['STATUS']['value'] !== 'CONFIRMED')
+						continue;
+						
 					$event = array(
 						'origin' => $url,
 						'id' => trim(sanitize_text_field(@$e['UID']['value'])),
@@ -81,7 +84,13 @@ class Okupanel_interface_ics extends Okupanel_interface {
 						'updated' => strtotime(sanitize_text_field(@$e['LAST-MODIFIED']['value'])),
 						'htmlLink' => null,//preg_replace('#^(.*?)(\.ics)$#i', '$1.html', $url).'?view=month&action=view&invId='.trim(sanitize_text_field(@$e['UID']['value'])).'&pstat=AC&useInstance=1',//&instStartTime=1504706400000&instDuration=7200000
 						'recurrence' => sanitize_text_field(@$e['RRULE']['value']),
+						'exceptions' => array(),
 					);
+					
+					if (!empty($e['EXDATE']))
+						foreach ($e['EXDATE'] as $e2)
+							foreach ($e2['value'] as $e3)
+								$event['exceptions'][] = strtotime($e3);
 					
 					// set gmts
 					foreach (array('start', 'end', 'updated', 'created') as $k)

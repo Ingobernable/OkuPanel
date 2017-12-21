@@ -36,7 +36,7 @@ function okupanel_settings_page(){
 			'style' => array()
 		);
 		
-		foreach (array('intro', 'links_label', 'address') as $k)
+		foreach (apply_filters('okupanel_textline_fields', array('intro', 'links_label', 'address')) as $k)
 			update_option('okupanel_'.$k, trim(wp_kses(stripslashes($_POST['okupanel_'.$k]), array(
 				'strong' => $allowed,
 				'span' => $allowed,
@@ -46,7 +46,7 @@ function okupanel_settings_page(){
 				'img' => $allowed + array('src' => array()),
 			))));
 		
-		foreach (array('most_important') as $k)
+		foreach (apply_filters('okupanel_html_fields_1', array('most_important')) as $k)
 			update_option('okupanel_'.$k, trim(wp_kses(stripslashes($_POST['okupanel_'.$k]), array(
 				'strong' => $allowed,
 				'span' => $allowed,
@@ -56,7 +56,7 @@ function okupanel_settings_page(){
 			
 		update_option('okupanel_page_ids', trim(sanitize_text_field($_POST['okupanel_page_ids'])));
 		
-		foreach (array('right_panel', 'bottombar') as $k)
+		foreach (apply_filters('okupanel_html_fields_2', array('right_panel', 'bottombar')) as $k)
 			update_option('okupanel_'.$k, trim(wp_kses(stripslashes($_POST['okupanel_'.$k]), array(
 				'strong' => $allowed,
 				'span' => $allowed,
@@ -79,6 +79,8 @@ function okupanel_settings_page(){
 		update_option('okupanel_panel_js', wp_strip_all_tags(trim(stripslashes($_POST['okupanel_panel_js']))));
 		
 		update_option('okupanel_mods', wp_strip_all_tags(trim(stripslashes($_POST['okupanel_mods']))));
+		
+		do_action('okupanel_save_settings');
 		
 		delete_option('okupanel_events_cache');
 	}
@@ -151,6 +153,8 @@ function okupanel_settings_page(){
 			</div>
 		</div>
 		
+		<?php do_action('okupanel_print_extra_textarea_fields_1'); ?>
+		
 		<div class="okupanel-field okupanel-settings-field">
 			<label><?= __('Bottom bar content', 'okupanel') ?></label>
 			<div class="okupanel-field-inner">
@@ -173,6 +177,8 @@ function okupanel_settings_page(){
 			</div>
 		</div>
 		
+		<?php do_action('okupanel_print_extra_textline_fields'); ?>
+		
 		<div class="okupanel-field okupanel-settings-field">
 			<label><?= __('Extra CSS', 'okupanel') ?></label>
 			<div class="okupanel-field-inner">
@@ -186,6 +192,8 @@ function okupanel_settings_page(){
 				<div><textarea name="okupanel_panel_js"><?= esc_textarea(get_option('okupanel_panel_js', '')) ?></textarea></div>
 			</div>
 		</div>
+		
+		<?php do_action('okupanel_print_extra_textarea_fields_2'); ?>
 		
 		<div class="okupanel-field okupanel-settings-field">
 			<label><?= __('Autodetected events', 'okupanel') ?>:</label>
@@ -210,6 +218,16 @@ function okupanel_settings_page(){
 				<div><?= __('Comma-separated page IDs to queue OkuPanel styles for. Useful when displaying events on a wordpress page with the <code>[okupanel]</code> shortcode.', 'okupanel') ?></div>
 			</div>
 		</div>
+		
+		<div class="okupanel-field okupanel-settings-field">
+			<label><?= __('Fullscreen time offset', 'okupanel') ?>:</label>
+			<div class="okupanel-field-inner">
+				<div><input type="text" name="okupanel_time_offset" value="<?= esc_attr(get_option('okupanel_time_offset', 0)) ?>" /></div>
+				<div><?= __('A time offset (in seconds or English human format) to apply to the fullscreen top clock, if it\'s not showing the right time.', 'okupanel') ?></div>
+			</div>
+		</div>
+		
+		<?php do_action('okupanel_print_extra_checkbox_fields'); ?>
 		
 		<div class="okupanel-field okupanel-settings-field">
 			<div class="okupanel-field-inner">
@@ -312,7 +330,7 @@ function okupanel_print_panel(){
 				$e['htmlLink'] = 'http://'.$e['htmlLink'];
 			$e['htmlLink'] = htmlentities($e['htmlLink']);
 		}
-	
+		
 		//$tr['icon'] = '<i class="fa fa-'.okupanel_get_icon($e['summary']).' okupanel-fixed-icon"></i>';
 		$tr['summary'] = htmlentities(!empty($e['summary']) ? $e['summary'] : $e['description']);
 
@@ -364,6 +382,23 @@ function okupanel_print_panel(){
 			);
 		
 		$title = rtrim(preg_replace('#^https?://(?:www\.)?(.*?)$#i', '$1', $e['htmlLink']), '/');
+		
+		
+		if ($e['end']){
+			$icon = '<i class="fa fa-long-arrow-right okupanel-fixed-icon"></i>';
+			
+			$diff = $e['end'] - $e['start'];
+			if ($diff < DAY_IN_SECONDS)
+				$until = date_i18n('H:i', $e['end']);
+			else if ($diff < 7 * DAY_IN_SECONDS)
+				$until = date_i18n('D', $e['end']).'. '.date('H:i', $e['end']);
+			else
+				$until = date_i18n(__('D m/d', 'okupanel'), $e['end']).'. '.date('H:i', $e['end']);
+			
+			//$tr['start'] = '<span>'.$tr['start'].'</span><span class="okupanel-ind-until"><i class="fa fa-long-arrow-right okupanel-fixed-icon"></i>'.$until.'</span>';
+			//$tr['summary'] .= '<span class="okupanel-ind-until">'.$icon.sprintf(__('Until %s', 'okupanel'), $until).'</span>';
+		}
+
 		
 		ob_start();
 		?>
@@ -438,24 +473,10 @@ function okupanel_print_panel(){
 		$tr_attr .= ' data-okupanel-popup-content="'.esc_attr($content).'"';
 
 		$tr['summary'] = $summary.'>'.$tr['summary'].'</a>';
+		
+		$tr['duration'] = $e['end'] ? okupanel_human_time_diff($e['end'] - $e['start']) : '';
 
-		if ($e['end']){
-			$icon = '<i class="fa fa-long-arrow-right okupanel-fixed-icon"></i>';
-			
-			$diff = $e['end'] - $e['start'];
-			if ($diff < DAY_IN_SECONDS)
-				$until = date_i18n('H:i', $e['end']);
-			else if ($diff < 7 * DAY_IN_SECONDS)
-				$until = date_i18n('D', $e['end']).'. '.date('H:i', $e['end']);
-			else
-				$until = date_i18n(__('D m/d', 'okupanel'), $e['end']).'. '.date('H:i', $e['end']);
-
-			$tr['summary'] .= '<span class="okupanel-ind-until">'.$icon.$until.'</span>';
-			$tr['duration'] = okupanel_human_time_diff($e['end'] - $e['start']);
-		}
-
-		if (!empty($e['htmlLink']) && isset($tr['duration']))
-			$tr['duration'] = '<a href="'.$e['htmlLink'].'" target="_blank">'.$tr['duration'].'</a>';
+		//$tr['duration'] = '<'.$linkTag.'>'.$tr['duration'].'</a>';
 		
 		$tr['location'] = !empty($e['location']) ? $e['location'] : '';
 		$title = !empty($e['olocation']) ? ' title="'.esc_attr($e['olocation']).'"' : '';
@@ -491,7 +512,21 @@ function okupanel_print_panel(){
 	
 	// print table
 	echo '<table class="okupanel-table" border="0" cellpadding="0" cellspacing="0">';
-		echo '<tr class="okupanel-table-headers"><th>'.__('Horary', 'okupanel').'</th><th>'.__('Activity', 'okupanel').'<span class="okupanel-ind-until-th">'.__('End', 'okupanel').'</span></th><th>'.__('Duration', 'okupanel').'</th><th>'.__('Floor.Room', 'okupanel').'</th></tr>';
+		echo '<tr class="okupanel-table-headers"><th>';
+		
+		//if (!empty($_GET['fullscreen']))
+		//	echo '<div class="okupanel-info-bubble"><div></div><i class="fa fa-chevron-down"></i>'.__('Horary', 'okupanel').'</div>';
+			
+		echo __('Horary', 'okupanel').'</th><th>'.__('Activity', 'okupanel');
+		
+		//echo '<span class="okupanel-ind-until-th">'.__('End', 'okupanel').'</span>
+		
+		echo '</th><th>'.__('Duration', 'okupanel').'</th><th>';
+		
+		//if (!empty($_GET['fullscreen']))
+		//	echo '<div class="okupanel-info-bubble"><div></div><i class="fa fa-chevron-down"></i>'.__('Location', 'okupanel').'</div>';
+		
+		echo __('Floor.Room', 'okupanel').'</th></tr>';
 
 		foreach (apply_filters('okupanel_tr', $trs) as $id => $tr){
 			
@@ -502,7 +537,13 @@ function okupanel_print_panel(){
 			);
 			echo '<tr class="okupanel-table-tr okupanel-table-tr-id-'.$id.' '.$tr['class'].'" '.$tr['attr'].'>';
 			if (is_string($tr['tds'])){
-				echo '<td class="okupanel-table-td-'.($tr['tds'] == '' ? 'space' : 'center').'" colspan="'.$col_span.'">'.$tr['tds'].($tr['tds'] == '' ? '' : '<span class="okupanel-table-mobile-header">Planta.Sala</span>').'</td>';
+				echo '<td class="okupanel-table-td-'.($tr['tds'] == '' ? 'space' : 'center').'" colspan="'.$col_span.'">';
+				if ($tr['tds'] != '')
+					echo '<span class="okupanel-table-mobile-header okupanel-table-mobile-header-left">'.__('Horary', 'okupanel').'</span>';
+				echo $tr['tds'];
+				if ($tr['tds'] != '')
+					echo '<span class="okupanel-table-mobile-header okupanel-table-mobile-header-right">'.__('Floor.Room', 'okupanel').'</span>';
+				echo '</td>';
 			} else {
 //				echo '<td>'.print_r($tr,  true).'</td>';
 				foreach (apply_filters('okupanel_tds', $tr['tds']) as $td_id => $td){
@@ -580,7 +621,7 @@ function okupanel_clean_room($str){
 		return '';
 		
 	if (preg_match('#^([KC]AFET(A|ERIA))$#iu', remove_accents($str))) // please adapt "K...ERIA" manually to your language
-		$str = 'Kafeta';
+		$str = __('Kafeta', 'okupanel');
 		
 	/*
 	if (preg_match_all('#([0-9\.]+)#iu', $str, $m, PREG_SET_ORDER) && count($m) > 1){
@@ -649,11 +690,15 @@ function okupanel_line($atts = array(), $content = ''){
 	$atts += array(
 		'label' => '',
 		'url' => '',
-		'link_label' => isset($atts['url']) ? $atts['url'] : ''
+		'link_label' => isset($atts['url']) ? $atts['url'] : '',
+		'icon' => null,
 	);
 	ob_start();
 	?>
-	<div class="okupanel-network-wrap">
+	<div class="okupanel-network-wrap<?php if ($atts['icon']) echo ' okupanel-network-wrap-iconed'; ?>">
+		<?php if ($atts['icon']){ ?>
+			<i class="fa fa-<?= $atts['icon'] ?> okupanel-network-icon"></i>
+		<?php } ?>
 		<span class="okupanel-network"><?php echo $atts['label']; if (preg_match('#.*[a-z0-9]$#iu', $atts['label'])) echo ':'; ?> </span>
 		<span class="okupanel-network-url">
 			<?php 
@@ -829,7 +874,9 @@ function okupanel_get_events(){
 				if (preg_match('#([A-Z]+)#iu', $e['summary']) || preg_match('#([A-Z]+)#iu', $e['description'])){
 					if ($e['recurrence'])
 						okunet_adjust_recurrence($e);
-					$events[] = $e;
+						
+					if (empty($e['exceptions']) || !in_array($e['start'], $e['exceptions']))
+						$events[] = $e;
 					foreach (okunet_get_other_recurrences($e) as $other_event)
 						$events[] = $other_event;
 				}
@@ -868,13 +915,15 @@ function okunet_get_other_recurrences($e){
 				$start = $e['start'];
 				while ($start < $max){
 					$start = strtotime('+7 days', $start);
-					$events[] = array(
-						'id' => $e['id'].' DUP'.$start,
-						'start' => $start,
-						'start_gmt' => $e['start_gmt'] + $start - $e['start'],
-						'end' => $e['end'] + $start - $e['start'],
-						'end_gmt' => $e['end_gmt'] + $start - $e['start'],
-					) + $e;
+					
+					if (empty($e['exceptions']) || !in_array($start, $e['exceptions']))
+						$events[] = array(
+							'id' => $e['id'].' DUP'.$start,
+							'start' => $start,
+							'start_gmt' => $e['start_gmt'] + $start - $e['start'],
+							'end' => $e['end'] + $start - $e['start'],
+							'end_gmt' => $e['end_gmt'] + $start - $e['start'],
+						) + $e;
 				}
 			}
 		}
@@ -892,8 +941,10 @@ function okunet_adjust_recurrence(&$e){
 			if ($e['start'] < time()){
 				$weekDay = max(intval(date_i18n('N', $e['start'])) - 1, 0); // 0 for monday, 6 for sunday
 				$today = $next = strtotime(date_i18n('Y-m-d')); // today at 00:00
-				while (intval(date_i18n('N', $next)) - 1 != $weekDay)
+				
+				while (intval(date_i18n('N', $next)) - 1 != $weekDay || (!empty($e['exceptions']) && in_array($next, $e['exceptions']))) // not much tested
 					$next += DAY_IN_SECONDS;
+				
 				$diff = $next - strtotime(date('Y-m-d', $e['start']));
 //				echo "DIFF: ".($diff / DAY_IN_SECONDS).'<br>';
 			
@@ -918,8 +969,12 @@ function okupanel_most_important($atts = array(), $content = ''){
 		if ($importants = get_option('okupanel_most_important', false))
 			foreach (explode("\n", $importants) as $imp){
 				$imp = trim($imp);
-				if ($imp != '' && preg_match('@^\s*(#.*?#[a-z]*)\s*(\s.*)?$@isu', $imp, $m))
-					$patterns[$m[1]] = !empty($m[2]) ? $m[2] : null;
+				if ($imp != '' && preg_match('@^(\s*fa-([a-z0-9-_]+))?\s*(#.*?#[a-z]*)\s*(\s.*)?$@isu', $imp, $m))
+					$patterns[$m[3]] = array(
+						'original' => $imp,
+						'label' => !empty($m[4]) ? trim($m[4]) : null,
+						'icon' => !empty($m[2]) ? $m[2] : 'bullhorn',
+					);
 			}
 
 		if ($patterns)
@@ -931,7 +986,7 @@ function okupanel_most_important($atts = array(), $content = ''){
 					continue;
 
 				$class = '';
-				foreach ($patterns as $pat => $title){
+				foreach ($patterns as $pat => $config){
 					
 					if (empty($done[$pat]) && preg_match($pat, $e['summary'])){ // please adapt manually to your language
 						$done[$pat] = true;
@@ -957,7 +1012,7 @@ function okupanel_most_important($atts = array(), $content = ''){
 							}
 							$date .= ' '.sprintf(__('at %s', 'okupanel'), date_i18n('G:i', $e['start']));
 						}
-						$html .= '<div class="okupanel-most-important"><i class="fa fa-'.($e['start_gmt'] < time() ? 'play' : 'bullhorn').'"></i><div class="okupanel-most-important-right"><strong>'.($title ? trim($title) : $e['summary']).'</strong> <br/>'.$date.(!empty($e['location']) ? ' <span class="okupanel-most-important-location">('.sprintf(__('room %s', 'okupanel'), $e['location']).')</span>' : '').'</div></div>';
+						$html .= '<div class="okupanel-most-important"><i class="fa fa-'.($e['start_gmt'] < time() ? 'play' : $config['icon']).'"></i><div class="okupanel-most-important-right"><strong>'.($config['title'] ? trim($config['title']) : $e['summary']).'</strong> <br/>'.$date.(!empty($e['location']) ? ' <span class="okupanel-most-important-location">('.okupanel_print_location($e['location']).')</span>' : '').'</div></div>';
 					}
 				}
 			}
@@ -966,6 +1021,13 @@ function okupanel_most_important($atts = array(), $content = ''){
 	}
 	
 	return '<div class="okupanel-most-importants">'.apply_filters('okupanel_shortcode_most_important', $html).'</div>';
+}
+
+function okupanel_print_location($loc){
+	if ($loc == __('Kafeta', 'okupanel'))
+		return $loc;
+	$loc = sprintf(__('room %s', 'okupanel'), $loc);
+	return $loc;
 }
 
 // load mods

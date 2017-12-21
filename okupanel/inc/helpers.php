@@ -26,9 +26,9 @@ function okupanel_human_time_diff($diff, $longNotation = false){
 	
 	$str = array();
 	if (!$longNotation || $h)
-		$str[] = sprintf($longNotation ? _n('%s hour', '%s hours', $h, 'okupanel') : __('%sH', 'okupanel'), $h);
+		$str[] = sprintf($longNotation ? ($h > 1 ? __('%s hours', 'okupanel') : __('%s hour', 'okupanel')) : __('%sH', 'okupanel'), $h);
 	if ($m)
-		$str[] = $longNotation ? sprintf(__('%s minutes', 'okupanel'), $m) : $m;
+		$str[] = $longNotation ? sprintf(__('%s minutes', 'okupanel'), $m) : str_pad($m, 2, '0');
 	return $longNotation ? okupanel_plural($str) : implode('', $str);
 }
 
@@ -152,7 +152,7 @@ function okupanel_print_js_vars(){
 			'autorefresh_frequency' => ((!empty($_GET['fullscreen']) ? OKUPANEL_FULLSCREEN_REFRESH_FREQUENCY : OKUPANEL_CLIENT_REFRESH_FREQUENCY) * MINUTE_IN_SECONDS) * 1000, // MS
 			'desynced_error_delay' => (2 * (OKUPANEL_FULLSCREEN_REFRESH_FREQUENCY * MINUTE_IN_SECONDS) + 10) * 1000, // MS
 			'simulate_desynced' => !empty($_GET['simulate_desynced']),
-			'now' => time(),
+			'now' => strtotime(date_i18n('Y-m-d H:i:s')), // pass server time to JS
 		)) ?>;
 		
 	</script>

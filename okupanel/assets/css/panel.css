@@ -51,13 +51,24 @@ html.okupanel .okupanel-table .okupanel-table-tr td {
 	margin-right: 3px;
 }
 .okupanel-ind-until {
-	color: #777;
-	float: right;
-	margin-left: 5px;
+    color: #777;
+    margin-left: 5px;
+    font-size: 11px;
+    font-weight: normal;
+    display: inline-block;
+    margin-top: 4px;
+    float: right;
+}
+.okupanel-ind-until i {
+    position: relative;
+    top: -3px;
 }
 .okupanel-table td,
 .okupanel-table th {
 	border: 1px solid transparent;
+}
+.okupanel-table th {
+	position: relative;
 }
 html.okupanel .okupanel-table .okupanel-table-tr td,
 html.okupanel .okupanel-table .okupanel-table-tr td a,
@@ -123,6 +134,7 @@ i.fa.okupanel-fixed-icon {
 
 .okupanel-table td.okupanel-table-td-id-start {
 	text-align: left;
+	white-space: nowrap;
 }
 
 .okupanel-table td.okupanel-table-td-id-location,
@@ -131,35 +143,37 @@ i.fa.okupanel-fixed-icon {
 	white-space: nowrap;
 }
 
-html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start, 
-html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a, 
-html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:active, 
-html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:focus {
-	border-top-color: transparent;
-	border-bottom-color: transparent;
-}
+@media screen and (min-width: 801px){ 
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start, 
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a, 
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:focus {
+		border-top-color: transparent;
+		border-bottom-color: transparent;
+	}
 
 
-html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start, 
-html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a, 
-html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
-html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
-	color: transparent;
-}
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start, 
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a, 
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
+		color: transparent;
+	}
 
 
-html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start, 
-html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a, 
-html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
-html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
-	border-top-color: #777 !important;
-}
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start, 
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a, 
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
+		border-top-color: #777 !important;
+	}
 
-html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start, 
-html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a, 
-html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
-html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
-	border-bottom-color: #777 !important;
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start, 
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a, 
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
+		border-bottom-color: #777 !important;
+	}
 }
 
 .okupanel-table td.okupanel-table-td-space {
@@ -284,6 +298,27 @@ html.okupanel .okupanel-header {
 	line-height: normal;
     position: relative;
 }
+.okupanel-network-wrap.okupanel-network-wrap-iconed {
+    padding-left: 34px;
+}
+.okupanel-fullscreen .okupanel-network-wrap.okupanel-network-wrap-iconed {
+    padding-left: 40px;
+}
+.okupanel-network-wrap.okupanel-network-wrap-iconed i.okupanel-network-icon {
+	font-size: 22px;
+    position: absolute;
+    left: 2px;
+    top: -2px;
+    text-align: center;
+    width: 21px;
+}
+.okupanel-fullscreen .okupanel-network-wrap.okupanel-network-wrap-iconed i.okupanel-network-icon {
+    font-size: 25px;
+    top: 2px;
+}
+.okupanel-network-wrap.okupanel-network-wrap-iconed .okupanel-network-url {
+    margin-left: 6px;
+}
 
 .okupanel-network {
 	display: block;
@@ -398,7 +433,12 @@ html.okupanel .okupanel-table-mobile-header {
     text-decoration: none;
     text-transform: none;
     position: absolute;
+}
+.okupanel-table-mobile-header-right {
     right: 0;
+}
+.okupanel-table-mobile-header-left {
+    left: 0;
 }
 .okupanel-network-sep-last {
 	display: none;
@@ -564,6 +604,11 @@ html.okupanel .okupanel-footer a {
 	}
 	.okupanel-table-mobile-header {
 		display: inline-block;
+	}
+	.okupanel-table-mobile-header-left {
+		float: left;
+	}
+	.okupanel-table-mobile-header-right {
 		float: right;
 	}
 	.okupanel-table .okupanel-table-tr td.okupanel-table-td-center {
@@ -710,6 +755,7 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 
 .okupanel-fullscreen .okupanel-most-importants {
 	display: block;
+    font-size: 16px;
 }
 
 .okupanel-most-important > i {
@@ -927,7 +973,7 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 
 
 .okupanel-header-wrap {
-    background: url("../img/banner-hq.jpg");
+    /* background: url("../img/banner-hq.jpg"); */
 }
 
 .okupanel-summary-hashtag {
@@ -974,3 +1020,82 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 	margin-right: 6px;
 }
 
+
+.okupanel-info-bubble {
+	position: absolute;
+    top: 28px;
+    font-style: normal;
+    font-family: roboto;
+    font-weight: bold;
+    line-height: normal;
+    left: -4px;
+}
+.okupanel-info-bubble,
+.okupanel-info-bubble div {
+    font-size: 21px;
+    background: #FFFF00;
+    color: #333;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+.okupanel-info-bubble div {
+    z-index: -2;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    box-shadow: 3px 4px 3px -2px #666;
+}
+
+.okupanel-info-bubble i {
+	position: absolute;
+    top: -7px;
+    font-size: 49px;
+    color: #ffff00;
+    z-index: -1;
+    left: 0px;
+    text-shadow: 0px 2px 3px #666;
+}
+
+.okupanel-nextact-title div {
+    white-space: nowrap;
+    overflow: hidden;
+    width: 250px;
+    display: inline-block;
+    text-overflow: ellipsis;
+}
+.okupanel-nextact-time {
+    white-space: nowrap;
+    white-space: nowrap;
+    text-align: right;
+    color: #555;
+    margin: 0 0 0 9px;
+}
+
+
+.okupanel-nextactivities tr {
+	border: none;
+    border-top: 1px solid #777;
+}
+
+.okupanel-nextactivies-title {
+	color: white;
+}
+
+.okupanel-nextactivities > span {
+
+    margin-right: 15px;
+    padding: 7px 0;
+    display: inline-block;
+    color: #ddd;
+}
+.okupanel-nextactivities > span.okupanel-nextact-day {
+	color: white;
+    text-transform: uppercase;
+}
+
+.okupanel-nextactivities > h3 {
+    border-bottom: 1px solid #777;
+    padding: 0 0 8px;
+}

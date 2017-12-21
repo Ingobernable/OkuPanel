@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: OkuPanel\n"
-"POT-Creation-Date: 2017-10-22 15:55+0200\n"
-"PO-Revision-Date: 2017-10-22 15:55+0200\n"
+"POT-Creation-Date: 2017-10-23 09:28+0200\n"
+"PO-Revision-Date: 2017-11-21 21:50+0100\n"
 "Last-Translator: \n"
 "Language-Team: Hacklab155 <luna155@riseup.net>\n"
 "Language: es_ES\n"
@@ -21,7 +21,7 @@ msgstr ""
 #, php-format
 msgid "%s hour"
 msgid_plural "%s hours"
-msgstr[0] "%s hora1"
+msgstr[0] "%s hora"
 msgstr[1] "%s horas"
 
 #: inc/helpers.php:29

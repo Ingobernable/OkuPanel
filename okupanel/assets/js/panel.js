@@ -9,10 +9,11 @@ jQuery(document).ready(function(){
 	if (clock.length){
 		function clock_update(){
 			var d = new Date();
+			d = new Date(d.valueOf() + d.getTimezoneOffset() * 60000); // set to GMT-0
 
 			jQuery('body')[last_update.getTime() < d.getTime() - OKUPANEL.desynced_error_delay || OKUPANEL.simulate_desynced ? 'addClass' : 'removeClass']('okupanel-desynced'); // show as desynced after 2 times the client refresh frequency, +10s
 
-			d.setTime((d.getTime() / 1000 - date_diff) * 1000);
+			d.setTime((d.getTime() / 1000 - date_diff) * 1000); // adjust to server time
 			clock.html(d.getHours()+':'+(d.getMinutes() > 9 ? d.getMinutes() : '0'+d.getMinutes()));
 		}
 		clock_update();
