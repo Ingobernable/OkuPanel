@@ -219,14 +219,6 @@ function okupanel_settings_page(){
 			</div>
 		</div>
 		
-		<div class="okupanel-field okupanel-settings-field">
-			<label><?= __('Fullscreen time offset', 'okupanel') ?>:</label>
-			<div class="okupanel-field-inner">
-				<div><input type="text" name="okupanel_time_offset" value="<?= esc_attr(get_option('okupanel_time_offset', 0)) ?>" /></div>
-				<div><?= __('A time offset (in seconds or English human format) to apply to the fullscreen top clock, if it\'s not showing the right time.', 'okupanel') ?></div>
-			</div>
-		</div>
-		
 		<?php do_action('okupanel_print_extra_checkbox_fields'); ?>
 		
 		<div class="okupanel-field okupanel-settings-field">
@@ -370,7 +362,7 @@ function okupanel_print_panel(){
 		if (!empty($e['htmlLinkFromDesc']))
 			$tr['summary'] .= '<i class="fa fa-external-link-square"></i>';
 			
-		if (preg_match('#(party|'.preg_quote(__('fiesta', 'okupanel'), '#').'|'.preg_quote(__('sound system', 'okupanel'), '#').'|'.preg_quote(__('concert', 'okupanel'), '#').')#ium', $e['summary']))
+		if (preg_match('#.*(party|'.preg_quote(__('party', 'okupanel'), '#').'|'.preg_quote(__('sound system', 'okupanel'), '#').'|'.preg_quote(__('concert', 'okupanel'), '#').').*#ium', $e['summary']))
 			$tr['summary'] .= '<i class="fa fa-music"></i>';
 
 		$play = $started 
