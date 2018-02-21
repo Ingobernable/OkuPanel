@@ -323,7 +323,7 @@ msgstr "D d/m"
 
 #: inc/settings.php:407
 msgid "Beginning"
-msgstr "Empiezo"
+msgstr "Comienzo"
 
 #: inc/settings.php:408
 #, php-format
