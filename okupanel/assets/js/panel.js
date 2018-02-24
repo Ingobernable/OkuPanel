@@ -30,7 +30,7 @@ jQuery(document).ready(function(){
 		disappear_duration: 5,
 		wait_before_reappear: 0,
 		reappear_duration: 4,
-		reanimate: 20, // looping again and again
+		reanimate: 20 // looping again and again
 	}; 
 
 	var table_bottom = jQuery('.okupanel-table-bottom');
@@ -96,7 +96,9 @@ jQuery(document).ready(function(){
 			url: OKUPANEL.ajax_url,
 			data: {
 				action: 'okupanel',
-				target: 'table_refresh'
+				target: 'table_refresh',
+				fullscreen: OKUPANEL.fullscreen,
+				okupanel_version: OKUPANEL.version
 			},
 			success: function(data){
 				if (data && data.success){
@@ -106,7 +108,9 @@ jQuery(document).ready(function(){
 						last_update = new Date();
 						jQuery('body').removeClass('okupanel-desynced');
 						jQuery('.okupanel-table').replaceWith(jQuery(data.html));
+						
 						jQuery('.okupanel-panel-right-inner').replaceWith(jQuery(data.right));
+						jQuery('body').trigger('okupanel_sidebar_loaded', [{okupanel_extra: data.extra}]);
 						
 						if (now_bottombar != data.bottombar){
 							now_bottombar = new_bottombar = data.bottombar;

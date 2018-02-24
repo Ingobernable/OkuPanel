@@ -83,7 +83,7 @@ function okupanel_panel_title($title){
 					<?php } ?>
 				</div>
 			</div>
-			<div class="okupanel-footer"><a href="https://wiki.ingobernable.net/doku.php?id=pantalla_entrada" target="_blank">OkuPanel</a><i class="fa fa-copyright fa-rotate-180"></i><a href="https://hacklab.ingobernable.net/" target="_blank">HackLab155</a></div>
+			<div class="okupanel-footer"><a href="https://wiki.ingobernable.net/doku.php?id=pantalla_entrada" target="_blank">OkuPanel</a><i class="fa fa-copyright fa-rotate-180"></i><a href="https://hacklab.ingobernable.net/" target="_blank">Ingoberlab</a></div>
 		</div>
 		<?php wp_footer(); ?>
 	</div>

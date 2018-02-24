@@ -23,7 +23,14 @@ function okupanel_ajax(){
 function okupanel_ajax_table_refresh(){
 	ob_start();
 	okupanel_print_panel();
-	return array('success' => true, 'html' => ob_get_clean(), 'right' => '<div class="okupanel-panel-right-inner">'.do_shortcode(get_option('okupanel_right_panel', '')).'</div>', 'bottombar' => okupanel_bottombar());
+	return array(
+		'success' => true, 
+		'html' => ob_get_clean(), 
+		'right' => '<div class="okupanel-panel-right-inner">'.do_shortcode(get_option('okupanel_right_panel', '')).'</div>', 
+		'bottombar' => okupanel_bottombar(),
+		'reload' => empty($_POST['okupanel_version']) || OKUPANEL_VERSION !== $_POST['okupanel_version'],
+		'extra' => apply_filters('okupanel_js_return', array()),
+	);
 }
 
 function okupanel_bottombar(){

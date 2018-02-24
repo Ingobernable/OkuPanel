@@ -1,5 +1,5 @@
 html.okupanel #wpadminbar { display: none; }
-			
+
 html.okupanel, html.okupanel body {
 	background: #000;
     line-height: normal;
@@ -33,6 +33,7 @@ html.okupanel .okupanel-table {
 }
 .okupanel-table .okupanel-table-tr td {
 	position: relative;
+	vertical-align: top;
 	padding: 5px 8px 3px;
 	line-height: normal;
 	border: 1px solid #777;
@@ -143,34 +144,34 @@ i.fa.okupanel-fixed-icon {
 	white-space: nowrap;
 }
 
-@media screen and (min-width: 801px){ 
-	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start, 
-	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a, 
-	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+@media screen and (min-width: 801px){
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start,
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a,
+	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:active,
 	html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start a:focus {
 		border-top-color: transparent;
 		border-bottom-color: transparent;
 	}
 
 
-	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start, 
-	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a, 
-	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start,
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a,
+	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:active,
 	html.okupanel .okupanel-table .okupanel-start-same.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
 		color: transparent;
 	}
 
 
-	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start, 
-	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a, 
-	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start,
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a,
+	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:active,
 	html.okupanel .okupanel-table .okupanel-start-first.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
 		border-top-color: #777 !important;
 	}
 
-	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start, 
-	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a, 
-	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:active, 
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start,
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a,
+	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:active,
 	html.okupanel .okupanel-table .okupanel-start-last.okupanel-table-tr td.okupanel-table-td-id-start a:focus {
 		border-bottom-color: #777 !important;
 	}
@@ -196,6 +197,7 @@ i.fa.okupanel-fixed-icon {
     padding-bottom: 5px;
     background: transparent;
     color: #777;
+    position: relative;
 }
 html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-center {
     color: white;
@@ -276,16 +278,19 @@ html.okupanel .okupanel-header {
 	margin-bottom: 9999px;
 }
 .okupanel-panel-left {
+	width: 73%;
 	position: relative;
 	float: left;
-	width: 73%;
 	padding: 10px 0 10px 20px;
 	box-sizing: border-box;
 }
+.okupanel-ytw-has-playing .okupanel-panel-left {
+	width: 60%;
+}
 .okupanel-panel-right {
+    width: 27%;
     position: relative;
     float: right;
-    width: 27%;
     padding: 24px 30px 20px 30px;
     color: white;
     overflow: hidden;
@@ -293,6 +298,9 @@ html.okupanel .okupanel-header {
     word-break: break-word;
 }
 
+.okupanel-ytw-has-playing .okupanel-panel-right {
+	width: 40%;
+}
 .okupanel-network-wrap {
 	margin-bottom: 11px;
 	line-height: normal;
@@ -529,7 +537,6 @@ html.okupanel .okupanel-footer a {
 		padding: 0 20px;
 		margin-bottom: 30px;
 		display: block;
-		text-align: center;
 		float: none;
 		width: 100%;
 		clear: both;
@@ -577,7 +584,7 @@ html.okupanel .okupanel-footer a {
 	html.okupanel td.okupanel-table-td.okupanel-table-td-id-start,
 	html.okupanel td.okupanel-table-td.okupanel-table-td-id-start a {
 		color: #eee;
-	}	
+	}
 	.okupanel-ind-until {
 		display: none;
 	}
@@ -618,7 +625,7 @@ html.okupanel .okupanel-footer a {
 	.okupanel-update-ind {
 		display: none;
 	}
-	
+
 }
 
 
@@ -631,12 +638,12 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-center { f
 html.okupanel .okupanel-header { font-family: soljik_dambaek; }
 html.okupanel .okupanel-table .okupanel-table-tr td { font-family: F25_bank_printer; }
 .okupanel-header span,
-.okupanel-header .okupanel-header span, 
+.okupanel-header .okupanel-header span,
 .okupanel-panel-right { font-family: nasalization; }
 
-html.okupanel .okupanel-table-headers th, 
-.okupanel-panel-right .okupanel-network-url, 
-.okupanel-table-mobile-header, 
+html.okupanel .okupanel-table-headers th,
+.okupanel-panel-right .okupanel-network-url,
+.okupanel-table-mobile-header,
 .okupanel-panel-mobile-menu a,
 .okupanel-header span.okupanel-update-ind,
 html.okupanel .okupanel-header span.okupanel-update-ind { font-family: 'roboto'; }
@@ -646,19 +653,19 @@ html.okupanel .okupanel-header span.okupanel-update-ind { font-family: 'roboto';
 @-moz-keyframes okupanel_rotatebox /*--for firefox--*/{
     from {
         -moz-transform:rotate(-180deg);
-    }       
+    }
     to {
         -moz-transform:rotate(180deg);
-    }                       
+    }
 }
 
 @-webkit-keyframes okupanel_rotatebox /*--for webkit--*/{
     from {
         -webkit-transform:rotate(-180deg);
-    }       
+    }
     to {
         -webkit-transform:rotate(180deg);
-    }                       
+    }
 }
 
 .okupanel_rotatebox {
@@ -742,7 +749,8 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 }
 }
 
-.okupanel-most-important {
+.okupanel-most-important,
+.okupanel-youtube-widget {
     padding: 10px 10px;
     border: 1px solid #777;
     margin: 20px 0;
@@ -987,7 +995,7 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 
 .okupanel-popup-title-label .okupanel-ind-new,
 .okupanel-popup-title-label .okupanel-ind-custom-status,
-.okupanel-popup-title-label .okupanel-ind-mod { 
+.okupanel-popup-title-label .okupanel-ind-mod {
 	margin-left: 10px;
 	top: -2px;
 }
@@ -1099,3 +1107,53 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
     border-bottom: 1px solid #777;
     padding: 0 0 8px;
 }
+
+.okupanel-day-header-featured {
+    position: absolute;
+    left: 76px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-family: monospace;
+    text-transform: none;
+    margin: -1px 0 0 0;
+    color: #bbb;
+    font-weight: normal;
+    display: none;
+}
+
+body.okupanel-fullscreen .okupanel-day-header-featured {
+    display: inline-block;
+}
+
+@media screen and (min-width: 1200px){
+	body .okupanel-day-header-featured {
+		display: inline-block;
+	}
+}
+
+
+.okupanel-table .okupanel-table-tr .okupanel-day-header-featured i.fa {
+    margin: -1px 3px 0 0;
+    font-size: 16px;
+    vertical-align: top;
+    color: #999;
+}
+
+body.okupanel-fullscreen .okupanel-day-header-featured {
+    left: 87px;
+    margin-top: 5px;
+    font-size: 15px;
+}
+body.okupanel-fullscreen .okupanel-table .okupanel-table-tr .okupanel-day-header-featured i.fa {
+    font-size: 20px;
+}
+
+.entry-content .okupanel-day-header-featured {
+    color: #777;
+}
+
+.entry-content .okupanel-table .okupanel-table-tr td i.fa.fa-play,
+.entry-content .okupanel-table .okupanel-table-tr td i.fa.fa-bullhorn {
+    color: #aaa;
+}
+

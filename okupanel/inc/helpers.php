@@ -111,15 +111,18 @@ function okupanel_fetch($url, $return_json = false, $type = 'get', $data = array
 		curl_setopt($process, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($process, CURLOPT_SSL_VERIFYPEER, 0);
 	}
+	
+	curl_setopt($process, CURLOPT_FOLLOWLOCATION, true);
 
 	$ret = curl_exec($process);
 	$error = curl_error($process);
+
 	curl_close($process);
 	if ($error && !empty($_GET['okupanel_print_errors']) && current_user_can('manage_options')){
 		echo '<br>'.$error.'<br>';
 		die();
 	}
-	
+
 	if (!$return_json)
 		return $ret;
 		
@@ -147,13 +150,16 @@ function okupanel_print_js_vars(){
 	<script type="text/javascript"> 
 		
 		// pass variables to JS
-		var OKUPANEL = <?= json_encode(array(
+		var OKUPANEL = <?= json_encode(apply_filters('okupanel_main_js_var', array(
 			'ajax_url' => admin_url('admin-ajax.php'),
 			'autorefresh_frequency' => ((!empty($_GET['fullscreen']) ? OKUPANEL_FULLSCREEN_REFRESH_FREQUENCY : OKUPANEL_CLIENT_REFRESH_FREQUENCY) * MINUTE_IN_SECONDS) * 1000, // MS
 			'desynced_error_delay' => (2 * (OKUPANEL_FULLSCREEN_REFRESH_FREQUENCY * MINUTE_IN_SECONDS) + 10) * 1000, // MS
 			'simulate_desynced' => !empty($_GET['simulate_desynced']),
 			'now' => strtotime(date_i18n('Y-m-d H:i:s')), // pass server time to JS
-		)) ?>;
+			'fullscreen' => !empty($_GET['fullscreen']),
+			'version' => OKUPANEL_VERSION,
+			'loading' => __('Loading', 'okupanel'),
+		))) ?>;
 		
 	</script>
 	<style>

@@ -8,7 +8,7 @@ Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A panel that displays live events from a Google Calendar or .ics files. By Hacklab155.
+A panel that displays live events from a Google Calendar or .ics files. By Ingoberlab.
 
 
 == Features ==
@@ -25,7 +25,7 @@ A panel that displays live events from a Google Calendar or .ics files. By Hackl
 
 See [our own OkuPanel](https://ingobernable.net/okupanel/) online!
 
-OkuPanel, by [Hacklab155](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
+OkuPanel, by [Ingoberlab](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
 Calle Gobernador 39, Madrid, Spain
 
 
@@ -62,7 +62,7 @@ Calle Gobernador 39, Madrid, Spain
 
 * On the "boot" partition of the MicroSD card, edit `fullpageos-network.txt` and put your network settings.
 * Edit `fullpageos.txt` and leave only your OkuPanel's fullscreen URL.
-* Edit `fullpageos-home.txt` and leave only your OkuPanel's fullscreen URL there again.
+* Edit `fullpagedashboard.txt` and leave only your OkuPanel's fullscreen URL there again.
 
 * Eject the MicroSD card, insert it into your Pi, plug the Pi to a screen, and boot it.
 
@@ -70,7 +70,7 @@ Calle Gobernador 39, Madrid, Spain
 
 * Additionally, you may log into your Pi via SSH (it may be located at fullpageos.local, default username is "pi", default password is "raspberry") and change the password using the passwd command. 
 
-OkuPanel, by [Hacklab155](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
+OkuPanel, by [Ingoberlab](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
 Calle Gobernador 39, Madrid, Spain
 
 
@@ -271,7 +271,7 @@ Autodetected events:
 
 See [our own OkuPanel](https://ingobernable.net/okupanel/) online!
 
-OkuPanel, by [Hacklab155](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
+OkuPanel, by [Ingoberlab](https://hacklab.ingobernable.net/)@[Ingobernable](https://ingobernable.net/),
 Calle Gobernador 39, Madrid, Spain
 
 
