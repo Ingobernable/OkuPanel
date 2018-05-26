@@ -56,8 +56,8 @@ function okupanel_page_template($template){
 		switch ($wp_query->query_vars['okupanel_action']){
 			case 'panel':
 				return OKUPANEL_PATH.'/templates/panel.php';
-			
-
+			case 'ics':
+				return OKUPANEL_PATH.'/templates/ics.php';
 		}
 		do_action('okupanel_action_'.$wp_query->query_vars['okupanel_action']);
 	}

@@ -28,7 +28,9 @@ function okupanel_settings_page(){
 		$type = sanitize_text_field(@$_POST['okupanel_cal_type']);
 		if ($type == '' || isset($interfaces[$type])){
 			update_option('okupanel_cal_type', $type);
-			$interfaces[$type]->save_config();
+			if ($interfaces[$type]!==null) {
+				$interfaces[$type]->save_config();
+			}
 		}
 
 		$allowed = array(
@@ -149,6 +151,7 @@ function okupanel_settings_page(){
 			<div class="okupanel-field-inner">
 				<div><?= sprintf(__('Your panel is displayed at %s', 'okupanel'), '<a href="'.site_url('okupanel/').'" target="_blank">'.site_url('okupanel/').'</a>') ?></div>
 				<div><?= sprintf(__('To use it as an entrance screen (a kiosk), open %s and turn the window fullscreen (commonly F11) or follow the kiosk installation instructions from %s.', 'okupanel'), '<a href="'.site_url('okupanel/?fullscreen=1&moving=1').'" target="_blank">'.site_url('okupanel/?fullscreen=1&moving=1').'</a>', '<a href="https://wordpress.org/okupanel" target="_blank">'.__('the plugin\'s page', 'okupanel').'</a>') ?></div>
+				<div><?= sprintf(__('iCal link to be used in calendar clients: %s'), '<a href="'.site_url('okupanel/ics/').'" target="_blank">'.site_url('okupanel/ics/').'</a>' ) ?></div>
 			</div>
 		</div>
 		<br/>
