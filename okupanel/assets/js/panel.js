@@ -19,7 +19,7 @@ jQuery(document).ready(function(){
 		clock_update();
 		setInterval(function(){
 			clock_update();
-		}, OKUPANEL.simulate_desynced? 3000 : 60000); // every minute
+		}, OKUPANEL.simulate_desynced ? 3000 : 60000); // every minute
 	}
 	
 	// delays for the animation of the table (in seconds)

@@ -47,14 +47,16 @@ function okupanel_settings_page(){
 		foreach (apply_filters('okupanel_textline_fields', array('intro', 'links_label', 'address')) as $k)
 			update_option('okupanel_'.$k, trim(wp_kses(stripslashes($_POST['okupanel_'.$k]), array(
 				'strong' => $allowed,
+				'b' => $allowed,
 				'span' => $allowed,
+				'div' => $allowed,
 				'ul' => $allowed,
 				'br' => array(),
 				'i' => $allowed,
 				'img' => $allowed + array('src' => array()),
 			))));
 
-		foreach (apply_filters('okupanel_html_fields_1', array('most_important')) as $k)
+		foreach (apply_filters('okupanel_html_fields_1', array('most_important', 'convert_regexps')) as $k)
 			update_option('okupanel_'.$k, trim(wp_kses(stripslashes($_POST['okupanel_'.$k]), array(
 				'strong' => $allowed,
 				'span' => $allowed,
@@ -213,6 +215,14 @@ function okupanel_settings_page(){
 		<?php do_action('okupanel_print_extra_textarea_fields_2'); ?>
 
 		<div class="okupanel-field okupanel-settings-field">
+			<label><?= __('Event location cleanup', 'okupanel') ?>:</label>
+			<div class="okupanel-field-inner">
+				<div><textarea name="okupanel_convert_regexps"><?= esc_textarea(get_option('okupanel_convert_regexps', '')) ?></textarea></div>
+				<div><?= __('One line per regexp conversion, starting with a regular expression delimited with #\'s, and then the replacement pattern between double quotes.', 'okupanel') ?></div>
+			</div>
+		</div>
+		
+		<div class="okupanel-field okupanel-settings-field">
 			<label><?= __('Autodetected events', 'okupanel') ?>:</label>
 			<div class="okupanel-field-inner">
 				<div><textarea name="okupanel_most_important"><?= esc_textarea(get_option('okupanel_most_important', '')) ?></textarea></div>
@@ -223,7 +233,7 @@ function okupanel_settings_page(){
 		<?php
 			$enabled_mods = explode(',', str_replace(' ', '', get_option('okupanel_mods', '')));
 		?>
-		<div class="okupanel-field okupanel-settings-field">
+		<div class="okupanel-field okupanel-settings-field okupanel-settings-field-mods">
 			<label><?= __('Enable mods', 'okupanel') ?></label>
 			<div class="okupanel-field-inner">
 				<div style="margin-bottom: 10px">
@@ -294,24 +304,16 @@ function okupanel_print_panel(){
 	if (current_user_can('manage_options') && !empty($_GET['okupanel_debug_final_events'])){
 		echo '<br>FINAL EVENTS:<br>';
 		foreach ($events as $e)
-			if (preg_match('#.*candelas.*#ius', $e['summary'])){
-				echo htmlentities(print_r($e, true));
-			}
+			echo htmlentities(print_r($e, true));
 		//echo htmlentities(print_r($events, true)).'<br><br>';
 	}
 
 	$last_start = null;
 	$header_after_id = null;
 	$last_shown = null;
-
-	usort($events, function($a, $b){
-		if ($a['start'] != $b['start'])
-			return $a['start'] > $b['start'] ? 1 : -1;
-		if ($a['end'] != $b['end'])
-			return $a['end'] > $b['end'] ? 1 : -1;
-		return $a['summary'] > $b['summary'] ? 1 : -1;
-	});
-
+	
+	okupanel_sort_events($events);
+	
 	foreach (array_values($events) as $events_i => $e){
 		if ($e['end_gmt'] < time())
 			continue;
@@ -449,7 +451,7 @@ function okupanel_print_panel(){
 				? '<i class="fa fa-bullhorn okupanel-playing-ind"></i>'
 				: ''
 			);
-
+		
 		$title = rtrim(preg_replace('#^https?://(?:www\.)?(.*?)$#i', '$1', $e['htmlLink']), '/');
 
 		if ($e['end']){
@@ -466,7 +468,10 @@ function okupanel_print_panel(){
 			//$tr['start'] = '<span>'.$tr['start'].'</span><span class="okupanel-ind-until"><i class="fa fa-long-arrow-right okupanel-fixed-icon"></i>'.$until.'</span>';
 			//$tr['summary'] .= '<span class="okupanel-ind-until">'.$icon.sprintf(__('Until %s', 'okupanel'), $until).'</span>';
 		}
-
+		
+		
+		$tr = apply_filters('okupanel_panel_tr', $tr, $e);
+		
 		ob_start();
 		?>
 		<div class="okupanel-popup-content-intro">
@@ -499,7 +504,7 @@ function okupanel_print_panel(){
 								else if (preg_match('#^([B0-9]+\.?)$#i', $e['location']))
 									echo __('Floor', 'okupanel').' ';
 
-								echo htmlentities(stripslashes($e['location']));
+								echo htmlentities($e['location']);
 							}
 						}
 						if ($address)
@@ -512,6 +517,9 @@ function okupanel_print_panel(){
 				<label><?= __('Frequency', 'okupanel') ?>:</label>
 				<span><?= (!empty($e['recurrence']) ? okupanel_human_recurrence($e) : __('Single event', 'okupanel')) ?></span>
 			</div>
+			<?php
+			do_action('okupanel_event_popup_after', $e);
+			?>
 		</div>
 		<?php
 
@@ -521,7 +529,7 @@ function okupanel_print_panel(){
 			<div class="okupanel-popup-content-body">
 				<?php
 				if ($show_desc)
-					echo nl2br(htmlentities(stripslashes(preg_replace('#https?://[^\s]+#ius', '<a href="$0" target="_blank">$0</a>', $e['description']))));
+					echo nl2br(htmlentities(preg_replace('#https?://[^\s]+#ius', '<a href="$0" target="_blank">$0</a>', $e['description'])));
 				echo $after;
 				?>
 			</div>
@@ -530,7 +538,7 @@ function okupanel_print_panel(){
 		$content = ob_get_clean();
 
 		$linkTag = 'a class="okupanel-popup-link" href="'.(!empty($e['htmlLink']) ? $e['htmlLink'] : '#').'" target="_blank"';
-		$linkTag .= ' title="'.esc_attr(htmlentities(wp_strip_all_tags($e['description']))).'"';
+		$linkTag .= ' title="'.esc_attr(wp_strip_all_tags(preg_replace('#\\\\n#', ' ', htmlentities($e['description'])))).'"';
 
 		$summary = $play.'<'.$linkTag;
 
@@ -548,7 +556,7 @@ function okupanel_print_panel(){
 		$tr['location'] = !empty($e['location']) ? $e['location'] : '';
 		$title = !empty($e['olocation']) ? ' title="'.esc_attr($e['olocation']).'"' : '';
 
-		if (strlen($tr['location']) > 10)
+		if (strlen($tr['location']) > OKUPANEL_MAX_LOCATION_LENGTH)
 			$tr['location'] = '...';
 
 		$tr['location'] = '<a'.$title.' '.$linkTag.'>'.$tr['location'].'</a>';
@@ -663,64 +671,69 @@ function okupanel_clean_room($str, &$found = false){
 		$found = true;
 		return $ret;
 	}
-
-	$str = trim(preg_replace('#\s*Calle\s*Gobernador[0-9\s]*(,?\s*Madrid)*(,?\s*Espa[ñn]a)?\s*#ius', '', $str)); // please adapt manually to your address
-
-	$str = trim(preg_replace('#\s*(Madrid\b[/,\.\s]?)\s*#ius', ' ', $str)); // please adapt manually to your address
-	$str = trim(preg_replace('#\s*(Espa[ñn]a\b[/,\.\s]?)\s*#ius', ' ', $str)); // please adapt manually to your address
-
-	if (preg_match('#^\s*patio(\s*santorini)?\s*$#is', $str)){ // please adapt "patio...santorini" manually to your yard
-		$found = true;
-		return __('Yard', 'okupanel');
+	$ostr = $str;
+	
+	$str = preg_replace('#^[ ,\.:;]*(.*?)[ ,\.:;]*$#iu', '$1', $str);
+	
+	static $convert = null;
+	if ($convert === null){
+		$convert = array();
+		foreach (explode("\n", get_option('okupanel_convert_regexps', '')) as $l)
+			if (preg_match('@^\s*(#.*?#[a-z]*)\s+"(.*)"\s*$@ius', $l, $m))
+				$convert[$m[1]] = $m[2];
 	}
+			
+	foreach ($convert as $regexp => $replace)
+		$str = trim(preg_replace($regexp, $replace, $str));
 
 	if (empty($str))
 		return '';
 
 	$parts = preg_split('#(\s*(/|'.preg_quote(__('and', 'okupanel'), '#').'|\+|,)\s*)#i', $str);
 	if (count($parts) > 1){
-		foreach ($parts as &$p)
-			$p = okupanel_clean_room($p);
 		/*usort($parts, function($a, $b){
 			return floatval($a) == floatval($b) ? $a > $b : floatval($a) > floatval($b);
 		});*/
 
 		$found = true;
-		return implode('/', $parts);
+			
+		$str = array();
+		foreach ($parts as $l)
+			if (($l = okupanel_clean_room($l)) && ($l = trim($l)))
+				$str[] = $l;
+			
+		sort($str);
+		$str = implode('/', array_unique($str));
+		
+		//echo $ostr.' => '.$str.'<br>';
+		return $str;
 	}
 
 	$str = rtrim(trim($str), '.');
-	$str = preg_replace('#^'.preg_quote(__('ingoberlab', 'okupanel'), '#').'\s*(.*)$#iu', '$1', $str); // please adapt "ingoberlab" manually to your language
-	if (preg_match('#^[\d\.]+$#', $str) && strlen($str) <= 4){
-		$str = str_replace('.', '', $str);
-		$str = $str[0].'.'.substr($str, 1);
-	}
+	
+	$str = okupanel_normalize_location($str);
+	
 	if (strlen($str) < 4)
 		$str = strtoupper($str);
-
-	if (preg_match('#^B([0-9])?$#iu', $str, $m)){ // please adapt "B" manually to your language
-		$str = 'B.'.(isset($str[1]) ? $str[1] : ''); // please adapt "B" manually to your language
+		
+	if (preg_match('#^([A-Z])\.?([0-9])?$#iu', $str, $m)){ 
+		$str = $m[1].'.'.(isset($m[2]) ? $m[2] : ''); 
 		$found = true;
 	}
-
-	if (preg_match('#^([XYZ]+)$#i', $str))
-		return '';
+	
+	if (preg_match('#^[\dA-Z]\.\d+$#', $str) && strlen($str) <= 4){
+		$str = str_replace('.', '', $str);
+		$str = $str[0].'.'.str_pad(substr($str, 1), 2, '0', STR_PAD_LEFT);
+	}
 
 	if (preg_match('#^([KC]AFET(A|ERIA))$#iu', remove_accents($str))){ // please adapt "K...ERIA" manually to your language
 		$str = __('Kafeta', 'okupanel');
 		$found = true;
-	}
+	} else 
+		$str = okupanel_normalize_location($str);
+	//echo $ostr.' => '.$str.'<br>';
 
-	/*
-	if (preg_match_all('#([0-9\.]+)#iu', $str, $m, PREG_SET_ORDER) && count($m) > 1){
-		print_r($m[0]);
-		foreach ($m[0] as &$c)
-			$c = rtrim(trim($c), '.');
-		if (count(array_unique($m[0])) == 1)
-			$str = $m[0][0];
-	}
-	*/
-	return apply_filters('okupanel_clean_room', $str);
+	return apply_filters('okupanel_clean_room', okupanel_ucfirst($str));
 }
 
 
@@ -754,6 +767,9 @@ function okupanel_convert_recurrence($e){
 }
 
 function okupanel_human_recurrence($e){
+	if (empty($e['recurrence']))
+		return '';
+		
 	$ldays = array('MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU');
 	$freqdays = array(
 		__('Monday', 'okupanel'),
@@ -791,15 +807,29 @@ function okupanel_human_recurrence($e){
 
 			$days = array();
 			$monday = strtotime('this monday');
-			foreach ($rec['BYDAY'] as $d)
-				if (($i = array_search($d, $ldays)) !== false)
-					$days[] = $freqdays[intval(date_i18n('N', $monday + ($i * DAY_IN_SECONDS)))-1];
-				else
+			$day_start = null;
+			$day_end = null;
+			foreach ($rec['BYDAY'] as $d){
+				if (($i = array_search($d, $ldays)) !== false){
+					$day_num = intval(date_i18n('N', $monday + ($i * DAY_IN_SECONDS)))-1;
+					if (!$day_start)
+						$day_start = $day_num;
+					if (!$day_end || $day_end == $day_num-1)
+						$day_end = $day_num;
+					else
+						$day_end = null;
+					if (($i = array_search($d, $ldays)) !== false)
+						$days[] = $freqdays[$day_num];
+				} else
 					$days[] = $d; // error, print through
+			}
 
-			if ($rec['INTERVAL'] == 1)
-				$str[] = sprintf(__('Every %s', 'okupanel'), okupanel_plural($days));
-			else if (count($days) == 1)
+			if ($rec['INTERVAL'] == 1){
+				//if ($day_end && $day_end != $day_start)
+				//	$str[] = sprintf(__('From %s to %s every week', 'okupanel'), $freqdays[$day_start], $freqdays[$day_end]);
+				//else
+					$str[] = sprintf(__('Every %s', 'okupanel'), okupanel_plural($days));
+			} else if (count($days) == 1)
 				$str[] = sprintf(__('Every %s weeks', 'okupanel'), $num);
 			else
 				$str[] = sprintf(__('Every %s weeks on %s', 'okupanel'), $num, okupanel_plural($days));
@@ -859,15 +889,15 @@ function okupanel_clock($is_ajax = false){
 
 
 function okupanel_add_room(&$e, $location, $summary, $is_location = false){
+	
 	if ($location != 'B' || !preg_match('#^B.*#ius', $e['location'])){
-
 		$e['location'] = $is_location || empty($e['location']) || okupanel_clean_room($e['location']) == okupanel_clean_room($location) ? okupanel_clean_room($location) : okupanel_clean_room($e['location']).'/'.okupanel_clean_room($location);
 	}
 
 	if (!$is_location)
 		$e['summary'] = trim($summary);
 
-	$e['location'] = implode('/', array_unique(explode('/', $e['location'])));
+	$e['location'] = okupanel_clean_room($e['location']);
 }
 
 function okupanel_lsdir($dir_path){
@@ -918,6 +948,129 @@ class Okupanel_interface {
 	public $id = null;
 }
 
+function okupanel_get_all_events($split_by_location = false){
+	
+	// return from cache
+	if (($cache = get_option('okupanel_all_events_cache', false)) && $cache['time'] > strtotime('-'.OKUPANEL_EVENTS_CACHE_DURATION.' minutes') && (!current_user_can('manage_options') || empty($_GET['update'])))
+
+		return $cache['events'];
+		
+	$events = array();
+	$start = strtotime(date('Y-m').'-01');
+	$end = strtotime('-1 year');
+	
+	for ($d = $start; $d > $end; $d = strtotime(date('Y-m', strtotime('-10 days', $d)).'-01')){
+		//echo date('Y-m', $d).'<br>';
+		if ($d == $start)
+			$events = array_merge($events, okupanel_get_events());
+		
+		else if ($obj = okupanel_get_current_interface()){
+		
+			$ret_events = apply_filters('okupanel_events', $obj->fetch_events($d));
+			
+			if ($ret_events){
+				$new_events = array();
+				okupanel_queue_events($ret_events, $new_events, false);
+				$events = array_merge($new_events, $events);
+			}
+		}
+	}
+	
+	if ($events)
+		okupanel_sort_events($events);
+		
+	// split events by location
+	if ($split_by_location){
+		$nevents = array();
+		foreach ($events as $e)
+			if (!empty($e['location']))
+				foreach (explode('/', $e['location']) as $loc)
+					$nevents[] = array(
+						'location' => $loc
+					)+$e;
+			else
+				$nevents[] = $e;
+	} else
+		$nevents = $events;
+		
+	// fetch ok
+	update_option('okupanel_all_events_cache', array(
+		'events' => $nevents,
+		'time' => time(),
+	));
+
+/*
+	// must fetch
+	else if ($obj = okupanel_get_current_interface()){
+		
+		
+		if ($ret_events){
+			$events = array();
+			okupanel_queue_events($ret_events, $events);
+
+			if ($events)
+				okupanel_sort_events($events);
+
+			// fetch ok
+			if (!current_user_can('manage_options') || empty($_GET['original']))
+				update_option('okupanel_events_cache', array(
+					'events' => $events,
+					'time' => time(),
+				));
+		} else
+			$events = $cache && $cache['events'] ? $cache['events'] : array();
+	}
+	*/
+	return $nevents;
+}
+
+
+function okupanel_queue_events(&$ret_events, &$events, $check_future = true){
+
+	foreach ($ret_events as &$e){
+		if (okupanel_normalize_event($e)){
+			if ($check_future && $e['start_gmt'] < time() && (empty($e['end_gmt']) || $e['end_gmt'] < time()))
+				continue;
+
+			if (empty($e['exceptions']) || !in_array($e['start'], $e['exceptions']))
+				$events[] = $e;
+			foreach (okunet_get_other_recurrences($e) as $other_event)
+				$events[] = $other_event;
+		}
+		//if (!empty($_GET['fullscreen']) && count($events) > 50)
+		//	break;
+	}
+	unset($e);
+}
+
+function okupanel_factorize_event_locations(&$events){
+	
+	// factorize same events, with same start and end
+	$factorized = array();
+	$last = null;
+	foreach ($events as $e){
+		if ($last 
+			&& strtoupper(trim(remove_accents($last['summary']))) == strtoupper(trim(remove_accents($e['summary'])))
+			&& $last['start'] == $e['start']
+			&& $last['end'] == $e['end']
+		){
+			// same consecutive event
+			$e['summary'] = $last['summary'];
+			if ($last['description'] && !$e['description'])
+				$e['description'] = $last['description'];
+			
+			$e['oolocation'] = $e['location'];
+			if ($e['location'] != $last['location'] && strlen($e['location']) + strlen($last['location']) <= OKUPANEL_MAX_LOCATION_LENGTH)
+				$e['location'] .= '/'.$last['location'];
+				
+			array_pop($factorized);
+		}
+		
+		$last = $e;
+		$factorized[] = $e;
+	}
+	$events = $factorized;
+}
 
 function okupanel_get_events(){
 	$cache = null;
@@ -930,121 +1083,196 @@ function okupanel_get_events(){
 
 	// must fetch
 	else if ($obj = okupanel_get_current_interface()){
-
+		
+		
 		$ret_events = apply_filters('okupanel_events', $obj->fetch_events());
 
 		if ($ret_events){
 			$events = array();
-
-			foreach ($ret_events as &$e){
-				$e['osummary'] = $e['summary'];
-				$e['odescription'] = $e['description'];
-				$e['olocation'] = $e['location'];
-
-				// please adapt manually all preg_match's below to your language. we'll try to abstract it to a field in a near future.
-
-				// post treatment
-				if (preg_match('#^((SALA|AULA)\s*)?([0-9\.][0-9\.]+(\s*(?:y|/)\s*[0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[3], $m[7]);
-
-				else if (preg_match('#^((SALA)\s*)([A-Z0-9\.]+(\s*y\s*[A-Z0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[3], $m[7]);
-
-				else if (preg_match('#^([KC]AFETA)\s*([-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[1], $m[4]);
-
-				else if (preg_match('#^(([0-9])[aª]\s+PLANTA\s*)([-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[2], $m[5]);
-
-				else if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*(\(\s*entrada\s*\))([-]\s*)?([:]\s*)?(.*?)$#ius', $e['summary'], $m))
-					okupanel_add_room($e, 'B', $m[5]);
-
-				else
-					$e['location'] = okupanel_clean_room($e['location']);
-
-				if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*([-]\s*)?([:]\s*)?(.*?)$#ius', $e['summary'], $m))
-					okupanel_add_room($e, 'B', $m[4]);
-
-				if (preg_match('#^(.*?)(\s*\(?\s*(sala|aula|planta)\s*([B0-9\.]+)\s*\)\s*)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[4], $m[1]);
-
-				if (preg_match('#^(.*?)\s*(patio(\s*santorini)?)\s*$#ium', $e['summary'], $m))
-					okupanel_add_room($e, __('Yard', 'okupanel'), $m[1]);
-
-				if (preg_match('#^(\s*patio(\s*santorini)?)\s*\.?\s*-?\s*(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, __('Yard', 'okupanel'), $m[3]);
-
-				if (preg_match('#^(.*?)(\s*\(?\s*(sala|aula|planta)\s*([B0-9\.]+)\s*\)\s*)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[4], $m[1]);
-
-				if (preg_match('#^(.*?)(\s*PLANTA\s*BAJA)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, 'B', $m[1]);
-				else if (preg_match('#^(.*?)(\s*SALA\s*(([B0-9\.]{1,5}(\s*(/|y|\+|,)\s*)?)+))$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[3], $m[1]);
-
-				if (preg_match('#^(.*?)(\s*PLANTA\s*BAJA)$#ium', $e['location'], $m))
-					okupanel_add_room($e, 'B', false, true);
-				else if (preg_match('#^(.*?)(\s*SALA\s*(([B0-9\.]{1,5}(\s*(/|y|\+|,)\s*)?)+))$#ium', $e['location'], $m))
-					okupanel_add_room($e, $m[3], false, true);
-
-				if (preg_match('#^(.*?)(\s*([0-9]\.[0-9]+\.?)\s*)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[3], $m[1]);
-
-				while (preg_match('#^(\s*,?\s*y?\s*(SALA)?\s*([B0-9\.]{2,5}))(.*?)$#ium', $e['summary'], $m))
-					okupanel_add_room($e, $m[3], $m[4]);
-
-				if (strlen($e['summary']) >= 5 && (okupanel_strtoupper($e['summary']) == $e['summary'] || okupanel_strtolower($e['summary']) == $e['summary']))
-					$e['summary'] = okupanel_strtolower($e['summary']);
-
-				$e['summary'] = okupanel_ucfirst(ltrim($e['summary'], '·'));
-
-				if (current_user_can('manage_options') && !empty($_GET['debug_event_parsing'])) // leave this, useful to add new undetected room patterns
-					$e['summary'] = $e['osummary'];
-
-				if (!empty($e['location']) && strlen($e['location']) >= 10){
-					if (preg_match('#.*(\b[0-9A-Z]\.[0-9]*)$#', $e['location'], $m))
-						$e['location'] = $m[1];
-				}
-
-				$e['summary'] = ltrim($e['summary'], '-. ');
-				$e['summary'] = rtrim($e['summary'], '-. ');
-				$e['summary'] = preg_replace('#\\\\,#', ',', $e['summary']);
-
-				$e = apply_filters('okupanel_event', $e);
-
-				if (preg_match('#([A-Z]+)#iu', $e['summary']) || preg_match('#([A-Z]+)#iu', $e['description'])){
-					if ($e['recurrence'])
-						okunet_adjust_recurrence($e);
-
-					if ($e['start'] < time() || (!empty($e['end']) && $e['end'] < time()))
-						continue;
-
-					if (empty($e['exceptions']) || !in_array($e['start'], $e['exceptions']))
-						$events[] = $e;
-					foreach (okunet_get_other_recurrences($e) as $other_event)
-						$events[] = $other_event;
-				}
-				//if (!empty($_GET['fullscreen']) && count($events) > 50)
-				//	break;
-			}
-			unset($e);
+			
+			okupanel_queue_events($ret_events, $events);
 
 			if ($events)
-				usort($events, function($a, $b){
+				okupanel_sort_events($events);
+				
+			okupanel_factorize_event_locations($events);
+			
+/*				usort($events, function($a, $b){
 					return $a['start'] == $b['start'] ? $a['end'] > $b['end'] : $a['start'] > $b['start'];
-				});
+				});*/
 
 			// fetch ok
-			update_option('okupanel_events_cache', array(
-				'events' => $events,
-				'time' => time(),
-			));
+			if (!current_user_can('manage_options') || empty($_GET['original']))
+				update_option('okupanel_events_cache', array(
+					'events' => $events,
+					'time' => time(),
+				));
 		} else
 			$events = $cache && $cache['events'] ? $cache['events'] : array();
 	}
 	return $events;
 }
 
+function okupanel_esc_regexp($regexp){
+	return preg_replace('#\((.*)?\)#', '(?:$1)', $regexp);
+}
+
+function okupanel_normalize_event(&$e){
+	
+	$e['osummary'] = $e['summary'];
+	$e['odescription'] = $e['description'];
+	$e['olocation'] = $e['location'];
+
+	// please adapt manually all preg_match's below to your language. we'll try to abstract it to a field in a near future.
+	
+	// okupanel_room_regexp
+	
+	$room_regexp = okupanel_esc_regexp(get_option('okupanel_room_regexp', __('room', 'okupanel')));
+	$and = '\b'.okupanel_esc_regexp(__('and', 'okupanel')).'\b';
+	
+	// post treatment
+	if (preg_match('#^(('.$room_regexp.')\s*)?([0-9\.][0-9\.]+(\s*(?:'.$and.'|/|&)\s*[0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[3], $m[7]);
+
+	else if (preg_match('#^(('.$room_regexp.')\s*)([A-Z0-9\.]+(\s*'.$and.'\s*[A-Z0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[3], $m[7]);
+
+	else if (preg_match('#^([KC]AFETA)\s*([-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[1], $m[4]);
+
+	else if (preg_match('#^(([0-9])[aª]\s+PLANTA\s*)([-]\s*)?([:]\s*)?(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[2], $m[5]);
+
+	else if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*(\(\s*entrada\s*\))([-]\s*)?([:]\s*)?(.*?)$#ius', $e['summary'], $m))
+		okupanel_add_room($e, 'B', $m[5]);
+
+	else
+		$e['location'] = okupanel_clean_room($e['location']);
+
+	if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*([-]\s*)?([:]\s*)?(.*?)$#ius', $e['summary'], $m))
+		okupanel_add_room($e, 'B', $m[4]);
+
+	if (preg_match('#^(.*?)(\s*\(?\s*('.$room_regexp.'|planta)\s*([A-Z0-9-\.]+)\s*\)\s*)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[4], $m[1]);
+
+	if (preg_match('#^(.*?)\s*(patio(\s*santorini)?)\s*$#ium', $e['summary'], $m))
+		okupanel_add_room($e, __('Yard', 'okupanel'), $m[1]);
+
+	if (preg_match('#^(\s*patio(\s*santorini)?)\s*\.?\s*-?\s*(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, __('Yard', 'okupanel'), $m[3]);
+
+	if (preg_match('#^(.*?)(\s*\(?\s*('.$room_regexp.'|planta)\s*([A-Z0-9-\.]+)\s*\)\s*)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[4], $m[1]);
+
+	if (preg_match('#^(.*?)(\s*PLANTA\s*BAJA)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, 'B', $m[1]);
+	else if (preg_match('#^(.*?)(\s*SALA\s*(([B0-9\.]{1,5}(\s*(/|y|\+|,)\s*)?)+))$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[3], $m[1]);
+
+	if (preg_match('#^(.*?)(\s*PLANTA\s*BAJA)$#ium', $e['location'], $m))
+		okupanel_add_room($e, 'B', false, true);
+	else if (preg_match('#^(.*?)(\s*SALA\s*(([A-Z0-9-\.]{1,5}(\s*(/|y|\+|,)\s*)?)+))(\([^\)]+\))?$#ium', $e['location'], $m))
+		okupanel_add_room($e, $m[3], false, true);
+
+	if (preg_match('#^(.*?)(\s*([0-9]\.[0-9]+\.?)\s*)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[3], $m[1]);
+
+	while (preg_match('#^(?:[\s\)]*,?\s*'.$and.'\s*(?:'.$room_regexp.')?\s*([A-Z0-9-\.]{2,5}))[\s\)]*(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[1], $m[2]);
+	
+	while (preg_match('#^(?:[\s\(]*,?\s*y?\s*(?:'.$room_regexp.')\s*([A-Z0-9-\. ]{2,5}))[\s\)]*(.*?)$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[1], $m[2]);
+		
+	while (preg_match('#^(.*?)(?:[\s\)]*,?\s*'.$and.'\s*(?:'.$room_regexp.')?\s*([A-Z0-9-\.]{2,5}))[\s\)]*$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[2], $m[1]);
+	
+	while (preg_match('#^(.*?)(?:[\s\(]*,?\s*y?\s*(?:'.$room_regexp.')\s*([A-Z0-9-\. ]{2,5}))[\s\)]*$#ium', $e['summary'], $m))
+		okupanel_add_room($e, $m[2], $m[1]);
+
+	if (strlen($e['summary']) >= 5 && (okupanel_strtoupper($e['summary']) == $e['summary'] || okupanel_strtolower($e['summary']) == $e['summary']))
+		$e['summary'] = okupanel_strtolower($e['summary']);
+
+	if (current_user_can('manage_options') && !empty($_GET['debug_event_parsing'])) // leave this, useful to add new undetected room patterns
+		$e['summary'] = $e['osummary'];
+		
+	if (!empty($e['location']) && strlen($e['location']) >= OKUPANEL_MAX_LOCATION_LENGTH){
+		if (preg_match('#.*(\b[0-9A-Z]\.[0-9]*)$#', $e['location'], $m))
+			$e['location'] = $m[1];
+	}
+
+	// remove location if appended to the summary
+	$regexp = '#^(?:'.$room_regexp.')?\s*'.preg_replace('#[\.,]#ius', '[.,]?', preg_replace('#[\.,]0#ius', '.0?', $e['location'])).'\b\s*#ius';
+	$e['summary'] = preg_replace($regexp, '', $e['summary']);
+	
+	//$e['summary'] = preg_replace('#^[ :;,\.-]*(.*?)[ :;,\.-]*$#iu', '$1', $e['summary']);
+	$e['summary'] = preg_replace('#\\\\,#', ',', $e['summary']);
+	$e['summary'] = preg_replace('#^[ \.,:;]*(.*?)[ \.,:;]*$#iu', '$1', $e['summary']);
+
+	//$e['summary'] = preg_replace('#^[ :;,\.-]*(.*?)[ :;,\.-]*$#iu', '$1', $e['summary']);
+	$e['summary'] = okupanel_ucfirst($e['summary']);
+
+	$e['location'] = preg_replace('#^(.*?\s*)(([A-Z]+)/\3)$#iu', '$1$3', $e['location']);
+	$e['location'] = okupanel_ucfirst(okupanel_clean_room($e['location']));
+	
+	$e = apply_filters('okupanel_event', $e);
+	
+	// show original summary with ?original=1 being loggued as admin. such results won't be saved into cache.
+	if (current_user_can('manage_options') && !empty($_GET['original'])){
+		$e['summary'] = $e['osummary'];
+		$e['description'] = $e['odescription'];
+		$e['location'] = $e['olocation'];
+	}
+	
+	if (preg_match('#([A-Z]+)#iu', $e['summary']) || preg_match('#([A-Z]+)#iu', $e['description'])){
+		if ($e['recurrence'])
+			okunet_adjust_recurrence($e);
+		return true;
+	}
+	return false;
+}
+
+function okupanel_normalize_location($loc){
+	// okupanel_room_regexp
+	
+	$room_regexp = okupanel_esc_regexp(get_option('okupanel_room_regexp', __('room', 'okupanel')));
+	$and = '\b'.okupanel_esc_regexp(__('and', 'okupanel')).'\b';
+	
+	// post treatment
+	if (preg_match('#^'.$room_regexp.'\s*([A-Z0-9]\.?[0-9\.]+)$#ium', $loc, $m))
+		$loc = $m[1];
+		
+	if (preg_match('#^(?:(?:'.$room_regexp.')\s*)?([A-Z0-9](?:\.[0-9]+)(\s*(?:'.$and.'|/|&)\s*[0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $loc, $m))
+		$loc = $m[1];
+
+	else if (preg_match('#^(?:(?:'.$room_regexp.')\s*)([A-Z0-9](?:\.[0-9]+)(\s*'.$and.'\s*[A-Z0-9\.]+)?)\s*([\-]\s*)?([:]\s*)?(.*?)$#ium', $loc, $m))
+		$loc = $m[1];
+
+	else if (preg_match('#^([KC]AFETA)\s*([-]\s*)?([:]\s*)?(.*?)$#ium', $loc, $m))
+		$loc = $m[1];
+
+	else if (preg_match('#^(([0-9])[aª]\s+PLANTA\s*)([-]\s*)?([:]\s*)?(.*?)$#ium', $loc, $m))
+		$loc = $m[2];
+
+	else if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*(\(\s*entrada\s*\))([-]\s*)?([:]\s*)?(.*?)$#ius', $loc, $m))
+		$loc = 'B';
+
+	if (preg_match('#^\s*\(?\s*(PLANTA\s*BAJA\s*)\s*\)?\s*([-]\s*)?([:]\s*)?(.*?)$#ius', $loc, $m))
+		$loc = 'B';
+
+	if (preg_match('#^(.*?)(\s*\(?\s*('.$room_regexp.'|planta)\s*([A-Z0-9-\.]+)\s*\)\s*)$#ium', $loc, $m))
+		$loc = $m[4];
+
+	if (preg_match('#^(.*?)\s*(patio(\s*santorini)?)\s*$#ium', $loc, $m))
+		$loc = __('Yard', 'okupanel');
+
+	if (preg_match('#^(\s*patio(\s*santorini)?)\s*\.?\s*-?\s*(.*?)$#ium', $loc, $m))
+		$loc = __('Yard', 'okupanel');
+
+	if (preg_match('#^(.*?)(\s*\(?\s*('.$room_regexp.'|planta)\s*([A-Z0-9-\.]+)\s*\)\s*)$#ium', $loc, $m))
+		$loc = $m[4];
+
+	return $loc;
+}
 
 function okunet_get_other_recurrences($e){
 	$events = array();
@@ -1069,7 +1297,7 @@ function okunet_get_other_recurrences($e){
 					if ($rec['INTERVAL'] == 1 || ($i % $rec['INTERVAL']) == 1){
 						if (empty($e['exceptions']) || !in_array($start, $e['exceptions']))
 							$events[] = array(
-								'id' => $e['id'].' DUP'.$start,
+								'id' => $e['id'].' okupanel-event-dup-'.$start,
 								'start' => $start,
 								'start_gmt' => $e['start_gmt'] + $start - $e['start'],
 								'end' => $e['end'] + $start - $e['start'],
@@ -1102,7 +1330,7 @@ function okunet_get_other_recurrences2($e){
 
 					if (empty($e['exceptions']) || !in_array($start, $e['exceptions']))
 						$events[] = array(
-							'id' => $e['id'].' DUP'.$start,
+							'id' => $e['id'].' okupanel-event-dup-'.$start,
 							'start' => $start,
 							'start_gmt' => $e['start_gmt'] + $start - $e['start'],
 							'end' => $e['end'] + $start - $e['start'],
@@ -1264,5 +1492,36 @@ function okupanel_lint_featured($str){
 		$ret = $intro.okupanel_ucfirst(okupanel_strtolower($str));
 
 	return '<span title="'.esc_attr($intros[0].$ostr).'">'.$ret.'</span>';
+}
+
+
+function okupanel_sort_events(&$events){
+	usort($events, function($a, $b){
+		if ($a['start'] != $b['start'])
+			return $a['start'] > $b['start'] ? 1 : -1;
+		if ($a['end'] != $b['end'])
+			return $a['end'] > $b['end'] ? 1 : -1;
+		return $a['summary'] > $b['summary'] ? 1 : -1;
+	});
+}
+
+function okupanel_sort_events_by_location_name(&$events){
+	usort($events, function($a, $b){
+		if (empty($a['location']))
+			return 1;
+		if (empty($b['location']))
+			return -1;
+		$fa = okupanel_get_floor_from_location($a['location'], true);
+		$fb = okupanel_get_floor_from_location($b['location'], true);
+		return $fa == $fb ? ($a['location'] > $b['location'] ? -1 : 1) : ($fa > $fb ? -1 : 1);
+	});
+}
+
+function okupanel_get_floor_from_location($location, $for_sorting = false){
+	if (preg_match('#^\s*[ck]afet(?:a|er[ií]a)\s*$#iu', $location))
+		$floor = $for_sorting ? 'B' : 'KAFETA';
+	else
+		$floor = preg_match('#.*?\b([A-Z]|[0-9]+)\b.*#i', $location, $m) ? okupanel_strtoupper($m[1]) : null;
+	return $for_sorting ? ($floor == 'B' ? 0 : (is_numeric($floor) ? intval($floor) : $floor)) : $floor;
 }
 

@@ -102,7 +102,6 @@ class Okupanel_interface_gcalendar extends Okupanel_interface {
 		
 		$events = array();
 		$printed = false;
-		$offset = intval(get_option('gmt_offset', 0) * HOUR_IN_SECONDS);
 		foreach ($cal_events as $e){
 			if (!$e->start || ($e->end->dateTime ? (strtotime($e->end->dateTime) < time()) : (strtotime($e->start->dateTime) < strtotime('-2 hours'))))
 				continue;
@@ -114,14 +113,14 @@ class Okupanel_interface_gcalendar extends Okupanel_interface {
 				
 			$e = array(
 				'id' => $e->id,
-				'start' => $e->start ? strtotime($e->start->dateTime) + $offset : null,
-				'start_gmt' => $e->start ? strtotime($e->start->dateTime) : null,
-				'end' => $e->end ? strtotime($e->end->dateTime) + $offset : null,
-				'end_gmt' => $e->end ? strtotime($e->end->dateTime) : null,
-				'created' => $e->created ? strtotime($e->created) + $offset : null,
-				'created_gmt' => $e->created ? strtotime($e->created) : null,
-				'updated' => $e->updated ? strtotime($e->updated) + $offset : null,
-				'updated_gmt' => $e->updated ? strtotime($e->updated) : null,
+				'start' => $e->start ? okupanel_parse_time($e->start->dateTime) : null,
+				'start_gmt' => $e->start ? okupanel_parse_time($e->start->dateTime, true) : null,
+				'end' => $e->end ? okupanel_parse_time($e->end->dateTime) : null,
+				'end_gmt' => $e->end ? okupanel_parse_time($e->end->dateTime, true) : null,
+				'created' => $e->created ? okupanel_parse_time($e->created) : null,
+				'created_gmt' => $e->created ? okupanel_parse_time($e->created, true) : null,
+				'updated' => $e->updated ? okupanel_parse_time($e->updated) : null,
+				'updated_gmt' => $e->updated ? okupanel_parse_time($e->updated, true) : null,
 				'status' => $e->status,
 				'summary' => trim(sanitize_text_field($e->summary)),
 				'description' => trim(sanitize_text_field($e->description)),

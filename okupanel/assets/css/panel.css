@@ -831,7 +831,7 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 99;
+    z-index: 9999;
     text-align: center;
     padding: 0 20px;
 }
@@ -987,7 +987,6 @@ html.okupanel .okupanel-table .okupanel-table-tr td.okupanel-table-td-id-start {
 .okupanel-summary-hashtag {
     position: relative;
     top: -1px;
-    min-width: 78px;
     vertical-align: top;
     display: inline-block;
     padding-right: 2px;

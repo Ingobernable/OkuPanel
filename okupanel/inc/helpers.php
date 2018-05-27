@@ -16,6 +16,8 @@ function okupanel_strtolower($str){
 }
 
 function okupanel_substr($str, $start, $length = null){
+	if (!$length)
+		$length = function_exists('mb_strlen') ? mb_strlen($str) : strlen($str);
 	return function_exists('mb_substr') ? mb_substr($str, $start, $length) : substr($str, $start, $length);
 }
 
@@ -207,5 +209,24 @@ function okupanel_print_popup(){
 		</div>
 	</div>
 	<?php
+	do_action('okupanel_print_popup_after');
 }
 
+
+
+function okupanel_parse_time($str, $return_gmt = false){
+	static $offset = null;
+	if ($offset === null)
+		$offset = intval(get_option('gmt_offset', 0) * HOUR_IN_SECONDS);
+	$time = strtotime($str);
+
+	if (preg_match('#.*Z$#i', $str)) // string is gmt
+		return $return_gmt ? $time : $time + $offset;
+	
+	return $return_gmt ? $time - $offset : $time;
+}
+
+
+function okupanel_stripslashes($str){
+	return preg_replace('#\\\\,#', ',', $str);
+}

@@ -48,3 +48,9 @@
 .okupanel-settings-field label {
 	font-weight: bold;
 }
+
+.okupanel-settings-field-mods .okupanel-field-inner label {
+	display: block;
+	width: auto;
+	font-weight: normal;
+}
